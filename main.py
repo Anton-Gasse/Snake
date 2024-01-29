@@ -76,9 +76,6 @@ class Game():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:    
-                    pygame.quit()
-                    sys.exit()
                 if event.key == pygame.K_RETURN:
                     self.gamestatus = "play"
                     self.reset()                                        
@@ -164,27 +161,28 @@ class Snake_Head(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x_pos, y_pos)
         self.screen = screen
+        self.speed = 2.5
     def add_tail(self):
     #letzter tail facing checken
         if self.tails.sprites() == []:
             if self.facing == "up":            
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up"))
+                self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up", self.speed))
             
             elif self.facing == "down":
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos - 25, "down"))
+                self.tails.add(Snake_Tail(self.x_pos, self.y_pos - 25, "down", self.speed))
             elif self.facing == "right":            
-                self.tails.add(Snake_Tail(self.x_pos - 25, self.y_pos, "right"))
+                self.tails.add(Snake_Tail(self.x_pos - 25, self.y_pos, "right", self.speed))
             elif self.facing == "left":        
-                self.tails.add(Snake_Tail(self.x_pos + 25, self.y_pos, "left"))
+                self.tails.add(Snake_Tail(self.x_pos + 25, self.y_pos, "left", self.speed))
         else:
             if self.tails.sprites()[-1].get_direction() == "up":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] + 25, self.tails.sprites()[-1].get_direction()))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] + 25, self.tails.sprites()[-1].get_direction(), self.speed))
             elif self.tails.sprites()[-1].get_direction() == "down":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] - 25, self.tails.sprites()[-1].get_direction()))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] - 25, self.tails.sprites()[-1].get_direction(), self.speed))
             elif self.tails.sprites()[-1].get_direction() == "right":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] - 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction()))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] - 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
             elif self.tails.sprites()[-1].get_direction() == "left":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] + 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction()))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] + 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
     def check_tails(self):
         if self.x_pos % 25 == 0 and self.y_pos % 25 == 0:
             for i, tail in enumerate(self.tails):
@@ -206,16 +204,16 @@ class Snake_Head(pygame.sprite.Sprite):
     
     def move(self):
         if self.facing == "up":
-            self.y_pos -= 2.5
+            self.y_pos -= self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)                            
         elif self.facing == "down":
-            self.y_pos += 2.5
+            self.y_pos += self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)                    
         elif self.facing == "right":
-            self.x_pos += 2.5
+            self.x_pos += self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)               
         elif self.facing == "left":
-            self.x_pos -= 2.5
+            self.x_pos -= self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)           
         for tail in self.tails:
             tail.move()
@@ -235,7 +233,7 @@ class Snake_Head(pygame.sprite.Sprite):
         return self.tails
     
 class Snake_Tail(pygame.sprite.Sprite):
-    def __init__(self, x_pos, y_pos, facing):
+    def __init__(self, x_pos, y_pos, facing, speed):
         super().__init__()
         self.x_pos = x_pos
         self.y_pos = y_pos
@@ -247,20 +245,21 @@ class Snake_Tail(pygame.sprite.Sprite):
         self.image.set_colorkey("white")
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x_pos, self.y_pos)
+        self.speed = speed
     def get_pos(self):
         return (self.x_pos, self.y_pos)
     def move(self):
         if self.facing == "up":
-            self.y_pos -= 2.5
+            self.y_pos -= self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)                           
         elif self.facing == "down":
-            self.y_pos += 2.5
+            self.y_pos += self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)            
         elif self.facing == "right":
-            self.x_pos += 2.5
+            self.x_pos += self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)                
         elif self.facing == "left":
-            self.x_pos -= 2.5
+            self.x_pos -= self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)
     def get_direction(self):
         return self.facing
