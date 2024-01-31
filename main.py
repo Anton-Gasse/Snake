@@ -17,7 +17,7 @@ class Game():
         self.gamestatus = "pause"
         self.game_map = Map(self.screen)
         self.snake = Snake_Head(100, 400, self.screen)
-        self.next_move = "up"
+        self.next_moves = []
         self.move_count = 0
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
@@ -40,13 +40,11 @@ class Game():
                 self.play_events()
                 self.game_map.draw()
                 self.screen.blit(self.score_text, (220, 400))
-                if self.move_count >= 10:
-                    self.snake.set_facing(self.next_move)
-                    self.move_count = 0
-                    self.last_move = self.next_move
                 self.snake.move()
-                self.move_count += 1
-                
+                if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
+                    self.snake.set_facing(self.next_moves.pop(0))
+                    
+            
                 self.snake.check_tails()
                 self.snake.draw()
                 self.apple.draw()
@@ -85,26 +83,29 @@ class Game():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
-                   
                 if event.key == pygame.K_w or event.key == pygame.K_UP:
                     if self.last_move != "down":
-                        self.next_move = "up"   
+                        self.next_moves.append("up") 
+                        self.last_move = "up"  
                        
                 if event.key == pygame.K_s or event.key == pygame.K_DOWN:
                     if self.last_move != "up":
-                        self.next_move = "down"  
+                        self.next_moves.append("down") 
+                        self.last_move = "down" 
                         
                 if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
                     if self.last_move != "left":
-                        self.next_move = "right" 
+                        self.next_moves.append("right")
+                        self.last_move = "right" 
                         
                 if event.key == pygame.K_a or event.key == pygame.K_LEFT:
                     if self.last_move != "right":
-                        self.next_move = "left"
+                        self.next_moves.append("left")
+                        self.last_move = "left"
                         
     def reset(self):
         self.snake = Snake_Head(100, 400, self.screen)
-        self.next_move = "up"
+        self.next_moves = []
         self.last_move = "up"
         self.move_count = 10
         self.score = 0
@@ -112,7 +113,7 @@ class Game():
     def spawn_apple(self):
         x = random.randint(1, 34)
         y = random.randint(1, 22)
-        if (x, y) != self.snake.get_pos:
+        if (x, y) != self.snake.get_pos():
             self.apple = Apple(x*25, y*25, self.screen)
             if pygame.sprite.spritecollideany(self.apple, self.snake.get_tails()):
                 return self.spawn_apple()          
@@ -161,7 +162,7 @@ class Snake_Head(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x_pos, y_pos)
         self.screen = screen
-        self.speed = 2.5
+        self.speed = 5
     def add_tail(self):
     #letzter tail facing checken
         if self.tails.sprites() == []:
@@ -219,10 +220,9 @@ class Snake_Head(pygame.sprite.Sprite):
             tail.move()
 
     def set_facing(self, facing):
-        if self.x_pos % 25 == 0 and self.y_pos % 25 == 0:
-            self.facing = facing
-            self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
-            self.image.set_colorkey("white")
+        self.facing = facing
+        self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
+        self.image.set_colorkey("white")
 
     def draw(self):
         self.screen.blit(self.image, self.rect)
