@@ -21,7 +21,7 @@ class Game():
         self.move_count = 0
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
-        self.start_text = self.font.render("PRESS ENTER TO START", False, "White")
+        self.start_text = self.font.render("PRESS ENTER OR TAP TO START", False, "White")
         self.score = 0
         self.score_text = self.font_groß.render(f"SCORE: {self.score}", False, [0, 155, 0])
     async def gameloop(self):
@@ -32,10 +32,11 @@ class Game():
                 self.screen.blit(self.score_text, (220, 400))
                 self.snake.draw()
                 self.apple.draw()
-                self.screen.blit(self.start_text, (170, 200))
+                self.screen.blit(self.start_text, (95, 200))
                 pygame.display.update()
                 self.clock.tick(60)
                 await asyncio.sleep(0)
+            
             while self.gamestatus == "play":
                 self.play_events()
                 self.game_map.draw()
@@ -44,11 +45,9 @@ class Game():
                 if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
                     self.snake.set_facing(self.next_moves.pop(0))
                     
-            
                 self.snake.check_tails()
                 self.snake.draw()
                 self.apple.draw()
-                
                 
                 #Collision Snake
                 if pygame.sprite.spritecollideany(self.snake, [self.apple]):
@@ -61,12 +60,9 @@ class Game():
                 if pygame.sprite.spritecollideany(self.snake, self.game_map.get_borders()):
                     self.gamestatus = "pause"
                 
-                
-                
                 pygame.display.update()
                 self.clock.tick(60)
                 await asyncio.sleep(0)
-        
         
     def pause_events(self):
         for event in pygame.event.get():
@@ -76,7 +72,11 @@ class Game():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
                     self.gamestatus = "play"
-                    self.reset()                                        
+                    self.reset()  
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.gamestatus = "play"
+                self.reset()
+
     def play_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -102,7 +102,28 @@ class Game():
                     if self.last_move != "right":
                         self.next_moves.append("left")
                         self.last_move = "left"
-                        
+
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                x, y = pygame.mouse.get_pos()
+                if 300 <= x <= 600 and 0 <= y <= 300:
+                    if self.last_move != "down":
+                        self.next_moves.append("up") 
+                        self.last_move = "up" 
+                if 300 <= x <= 600 and 301 <= y <= 600:
+                    if self.last_move != "up":
+                        self.next_moves.append("down") 
+                        self.last_move = "down" 
+                
+                if 601 <= x <= 900 and 0 <= y <= 600:
+                    if self.last_move != "left":
+                        self.next_moves.append("right")
+                        self.last_move = "right" 
+
+                if 0 <= x <= 299 and 0 <= y <= 600:
+                    if self.last_move != "right":
+                        self.next_moves.append("left")
+                        self.last_move = "left"
+        
     def reset(self):
         self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
@@ -110,6 +131,7 @@ class Game():
         self.move_count = 10
         self.score = 0
         self.score_text = self.font_groß.render(f"SCORE: {self.score}", False, [0, 155, 0])
+    
     def spawn_apple(self):
         x = random.randint(1, 34)
         y = random.randint(1, 22)
@@ -119,6 +141,7 @@ class Game():
                 return self.spawn_apple()          
         else:
             return self.spawn_apple()
+        
 class Border(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
@@ -126,7 +149,6 @@ class Border(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         
- 
 class Map():
     def __init__(self, screen):
         self.borders = pygame.sprite.Group()
@@ -135,7 +157,6 @@ class Map():
             self.map_file = m.readlines()
         self.add_borders()
         self.background = pygame.image.load("utils/background.png")
-        
         
     def add_borders(self):
         for i in range(len(self.map_file)):
@@ -149,7 +170,6 @@ class Map():
     def get_borders(self):
         return self.borders
         
-
 class Snake_Head(pygame.sprite.Sprite):
     def __init__(self, x_pos, y_pos, screen):
         super().__init__()
@@ -164,7 +184,6 @@ class Snake_Head(pygame.sprite.Sprite):
         self.screen = screen
         self.speed = 5
     def add_tail(self):
-    #letzter tail facing checken
         if self.tails.sprites() == []:
             if self.facing == "up":            
                 self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up", self.speed))
@@ -191,7 +210,6 @@ class Snake_Head(pygame.sprite.Sprite):
                     tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1], self.x_pos, self.y_pos))                                        
                 else:
                     tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1] , self.tails.sprites()[i-1].get_pos()[0], self.tails.sprites()[i-1].get_pos()[1]))
-                    
                     
     def compare_tails(self, x1, y1, x2, y2): 
         if x1 == x2 and y1 < y2:
@@ -225,10 +243,12 @@ class Snake_Head(pygame.sprite.Sprite):
         self.image.set_colorkey("white")
 
     def draw(self):
-        self.screen.blit(self.image, self.rect)
         self.tails.draw(self.screen)
+        self.screen.blit(self.image, self.rect)
+        
     def get_pos(self):
         return (self.x_pos, self.y_pos)
+    
     def get_tails(self):
         return self.tails
     
@@ -246,8 +266,10 @@ class Snake_Tail(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x_pos, self.y_pos)
         self.speed = speed
+
     def get_pos(self):
         return (self.x_pos, self.y_pos)
+    
     def move(self):
         if self.facing == "up":
             self.y_pos -= self.speed
@@ -261,8 +283,10 @@ class Snake_Tail(pygame.sprite.Sprite):
         elif self.facing == "left":
             self.x_pos -= self.speed
             self.rect.topleft = (self.x_pos, self.y_pos)
+
     def get_direction(self):
         return self.facing
+    
     def set_direction(self, facing):
         self.facing = facing
         if facing == "up" or facing == "down":
@@ -288,5 +312,3 @@ class Apple(pygame.sprite.Sprite):
 if __name__ == "__main__":
     game = Game()
     asyncio.run(game.gameloop())
-
-#Tail Spawn an letzten dran
