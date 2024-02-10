@@ -153,9 +153,12 @@ class SnakeEnv(gymnasium.Env):
         if self.check_apple_colission():
             self.snake.append_tail()
             self.update_apple()
+            self.step_counter = 0
             reward += 1
         self.update_map()
         if self.check_border_colission():
+            terminated = True
+        if self.check_tail_collission():
             terminated = True
         self.step_counter += 1
         if self.step_counter >= 100:
@@ -200,6 +203,14 @@ class SnakeEnv(gymnasium.Env):
     def check_border_colission(self) -> bool:
         snake_x, snake_y = self.snake.get_pos()
         return snake_x == 0 or snake_x == self.MAP_WIDTH-1 or snake_y == 0 or snake_y == self.MAP_HEIGHT-1
+    
+    def check_tail_collission(self) -> bool:
+        snake_x, snake_y = self.snake.get_pos()
+        for tail in self.snake.get_tails():
+            tail_x, tail_y = tail.get_pos()
+            if snake_x == tail_x and snake_y == tail_y:
+                return True
+        return False
 
 if __name__ == "__main__":
     e = SnakeEnv({})
