@@ -1,21 +1,47 @@
 import sys
 import pygame
-import math
 import random
-import time
 import asyncio
+from map import Map
+from snake import Snake_Head
+from apple import Apple
 
 class Game():
-    def __init__(self):
-        
+    """
+    A class representing the game logic and mechanics.
+
+    Attributes:
+        screen (pygame.Surface): The surface where the game will be displayed.
+        pixels (int): The size of each game block.
+        clock (pygame.time.Clock): A clock object to control the game's frame rate.
+        font (pygame.font.Font): The font used for text rendering in the game.
+        large_font (pygame.font.Font): The font used for larger text rendering in the game.
+        gamestatus (str): The current status of the game ("pause" or "play").
+        game_map (Map): The map object containing game borders.
+        border_free_positions (list): A list of free positions on the game map not occupied by borders.
+        snake (Snake_Head): The snake head object.
+        next_moves (list): A list of directions for the snake to move next.
+        move_count (int): A counter for the number of moves made by the snake.
+        apple (Apple): The apple object.
+        last_move (str): The last direction the snake moved.
+        start_text (pygame.Surface): The text displayed when the game is paused, prompting the player to start.
+        score (int): The player's score.
+        score_text (pygame.Surface): The text displaying the player's score.
+    """
+    def __init__(self) -> None:
+        """
+        Initializes the Game object.
+        """
         pygame.init()
         self.screen = pygame.display.set_mode((900, 600), pygame.RESIZABLE)
         pygame.display.set_caption("Snake")
+        self.pixels = 25
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("utils/astroids-pixel-font.ttf", 30)
-        self.font_groß = pygame.font.Font("utils/astroids-pixel-font.ttf", 60)
+        self.large_font = pygame.font.Font("utils/astroids-pixel-font.ttf", 60)
         self.gamestatus = "pause"
         self.game_map = Map(self.screen)
+        self.border_free_positions = self.get_border_free_positions()
         self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
         self.move_count = 0
@@ -23,8 +49,13 @@ class Game():
         self.last_move = "up"
         self.start_text = self.font.render("PRESS ENTER OR TAP TO START", False, "White")
         self.score = 0
-        self.score_text = self.font_groß.render(f"SCORE: {self.score}", False, [0, 155, 0])
-    async def gameloop(self):
+        self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+        
+
+    async def gameloop(self) -> None:
+        """
+        The main game loop.
+        """
         while True:
             while self.gamestatus == "pause":
                 self.pause_events()
@@ -49,12 +80,11 @@ class Game():
                 self.snake.draw()
                 self.apple.draw()
                 
-                #Collision Snake
                 if pygame.sprite.spritecollideany(self.snake, [self.apple]):
                     self.snake.add_tail()
                     self.spawn_apple()
                     self.score += 1
-                    self.score_text = self.font_groß.render(f"SCORE: {self.score}", False, [0, 155, 0])
+                    self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
                 if pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) and pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) != self.snake.get_tails().sprites()[0]:
                     self.gamestatus = "pause"                   
                 if pygame.sprite.spritecollideany(self.snake, self.game_map.get_borders()):
@@ -64,7 +94,11 @@ class Game():
                 self.clock.tick(60)
                 await asyncio.sleep(0)
         
-    def pause_events(self):
+
+    def pause_events(self) -> None:
+        """
+        Handles events while the game is paused.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -77,7 +111,11 @@ class Game():
                 self.gamestatus = "play"
                 self.reset()
 
-    def play_events(self):
+
+    def play_events(self) -> None:
+        """
+        Handles events while the game is playing.
+        """
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -124,190 +162,68 @@ class Game():
                         self.next_moves.append("left")
                         self.last_move = "left"
         
-    def reset(self):
+
+    def reset(self) -> None:
+        """
+        Resets the game to its initial state.
+        """
         self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
         self.last_move = "up"
         self.move_count = 10
         self.score = 0
-        self.score_text = self.font_groß.render(f"SCORE: {self.score}", False, [0, 155, 0])
+        self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
     
-    def spawn_apple(self):
-        x = random.randint(1, 34)
-        y = random.randint(1, 22)
-        if (x, y) != self.snake.get_pos():
-            self.apple = Apple(x*25, y*25, self.screen)
-            if pygame.sprite.spritecollideany(self.apple, self.snake.get_tails()):
-                return self.spawn_apple()          
-        else:
-            return self.spawn_apple()
-        
-class Border(pygame.sprite.Sprite):
-    def __init__(self, x, y):
-        super().__init__()
-        self.image = pygame.image.load("utils/border.png")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x, y)
-        
-class Map():
-    def __init__(self, screen):
-        self.borders = pygame.sprite.Group()
-        self.screen = screen
-        with open("utils/map.txt") as m:
-            self.map_file = m.readlines()
-        self.add_borders()
-        self.background = pygame.image.load("utils/background.png")
-        
-    def add_borders(self):
-        for i in range(len(self.map_file)):
-            for j in range(len(self.map_file[i])):
-                if self.map_file[i][j] == "x":
-                    self.borders.add(Border(j * 25,i * 25))
 
-    def draw(self):
-        self.screen.blit(self.background , (0,0))
-        self.borders.draw(self.screen)
-    def get_borders(self):
-        return self.borders
+    def spawn_apple(self) -> None:
+        x, y = random.choice(self.get_possible_apple_positions())
+        self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
         
-class Snake_Head(pygame.sprite.Sprite):
-    def __init__(self, x_pos, y_pos, screen):
-        super().__init__()
-        self.x_pos = x_pos
-        self.y_pos = y_pos
-        self.tails = pygame.sprite.Group()
-        self.facing = "up"
-        self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
-        self.image.set_colorkey("white")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (x_pos, y_pos)
-        self.screen = screen
-        self.speed = 5
-    def add_tail(self):
-        if self.tails.sprites() == []:
-            if self.facing == "up":            
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up", self.speed))
-            
-            elif self.facing == "down":
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos - 25, "down", self.speed))
-            elif self.facing == "right":            
-                self.tails.add(Snake_Tail(self.x_pos - 25, self.y_pos, "right", self.speed))
-            elif self.facing == "left":        
-                self.tails.add(Snake_Tail(self.x_pos + 25, self.y_pos, "left", self.speed))
-        else:
-            if self.tails.sprites()[-1].get_direction() == "up":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] + 25, self.tails.sprites()[-1].get_direction(), self.speed))
-            elif self.tails.sprites()[-1].get_direction() == "down":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] - 25, self.tails.sprites()[-1].get_direction(), self.speed))
-            elif self.tails.sprites()[-1].get_direction() == "right":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] - 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
-            elif self.tails.sprites()[-1].get_direction() == "left":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] + 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
-    def check_tails(self):
-        if self.x_pos % 25 == 0 and self.y_pos % 25 == 0:
-            for i, tail in enumerate(self.tails):
-                if i == 0:                   
-                    tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1], self.x_pos, self.y_pos))                                        
-                else:
-                    tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1] , self.tails.sprites()[i-1].get_pos()[0], self.tails.sprites()[i-1].get_pos()[1]))
-                    
-    def compare_tails(self, x1, y1, x2, y2): 
-        if x1 == x2 and y1 < y2:
-            return "down"
-        if x1 == x2 and y1 > y2:
-            return "up"    
-        if x1 < x2 and y1 == y2:
-            return "right"
-        if x1 > x2 and y1 == y2:
-            return "left"
-    
-    def move(self):
-        if self.facing == "up":
-            self.y_pos -= self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)                            
-        elif self.facing == "down":
-            self.y_pos += self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)                    
-        elif self.facing == "right":
-            self.x_pos += self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)               
-        elif self.facing == "left":
-            self.x_pos -= self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)           
-        for tail in self.tails:
-            tail.move()
 
-    def set_facing(self, facing):
-        self.facing = facing
-        self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
-        self.image.set_colorkey("white")
+    def get_possible_apple_positions(self) -> list[tuple[int, int]]:
+        """
+        Determines possible positions to spawn an apple.
 
-    def draw(self):
-        self.tails.draw(self.screen)
-        self.screen.blit(self.image, self.rect)
+        Returns:
+            list[tuple[int, int]]: A list of possible positions.
+        """
+        positions = []
+        for x, y in self.border_free_positions:
+            tmp_rect = pygame.Rect(self.pixels*x, self.pixels*y, self.pixels, self.pixels)
+            colission = False
+            if tmp_rect.collidepoint(self.snake.get_pos()):
+                colission = True
+                
+            for tail in self.snake.get_tails():
+                if tmp_rect.collidepoint(tail.get_pos()):
+                    colission = True
+            if colission == False:
+                positions.append((x, y))
         
-    def get_pos(self):
-        return (self.x_pos, self.y_pos)
+        return positions
     
-    def get_tails(self):
-        return self.tails
-    
-class Snake_Tail(pygame.sprite.Sprite):
-    def __init__(self, x_pos, y_pos, facing, speed):
-        super().__init__()
-        self.x_pos = x_pos
-        self.y_pos = y_pos
-        self.facing = facing
-        if self.facing == "up" or self.facing == "down":
-            self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
-        elif self.facing == "right" or self.facing == "left":
-            self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
-        self.image.set_colorkey("white")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (self.x_pos, self.y_pos)
-        self.speed = speed
 
-    def get_pos(self):
-        return (self.x_pos, self.y_pos)
-    
-    def move(self):
-        if self.facing == "up":
-            self.y_pos -= self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)                           
-        elif self.facing == "down":
-            self.y_pos += self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)            
-        elif self.facing == "right":
-            self.x_pos += self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)                
-        elif self.facing == "left":
-            self.x_pos -= self.speed
-            self.rect.topleft = (self.x_pos, self.y_pos)
+    def get_border_free_positions(self) -> list[tuple[int, int]]:
+        """
+        Determines the free positions on the game map not occupied by borders.
 
-    def get_direction(self):
-        return self.facing
-    
-    def set_direction(self, facing):
-        self.facing = facing
-        if facing == "up" or facing == "down":
-            self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
-            self.image.set_colorkey("white")
-        if facing == "left" or facing == "right":
-            self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
-            self.image.set_colorkey("white")
-        
-class Apple(pygame.sprite.Sprite):
-    def __init__(self, x_pos, y_pos, screen):
-        super().__init__()
-        self.screen = screen
-        self.x_pos = x_pos
-        self.y_pos = y_pos
-        self.image = pygame.image.load("utils/apple.png").convert_alpha()
-        self.image.set_colorkey("white")
-        self.rect = self.image.get_rect()
-        self.rect.topleft = (self.x_pos, self.y_pos)
-    def draw(self):
-        self.screen.blit(self.image, self.rect)
+        Returns:
+            list[tuple[int, int]]: A list of free positions.
+        """
+        positions = []
+        border_positions= [border.get_pos() for border in self.game_map.get_borders()]
+        with open("utils/map.txt", "r") as m:
+            file = m.readlines()
+            heigth = len(file)
+            width = len(file[0])-1
+        for y in range(heigth):
+            for x in range(width):
+                if (x*self.pixels, y*self.pixels) in border_positions:
+                    continue
+                positions.append((x,y))
+
+        return positions
+      
                                     
 if __name__ == "__main__":
     game = Game()
