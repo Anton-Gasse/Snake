@@ -18,5 +18,5 @@ You can customize the map.txt file in the utils folder
 
 ![custom map](https://github.com/Anton-Gasse/Snake/blob/main/utils/readme_snake_custom.png?raw=true)
 
-##Coming soon
+## Coming soon
 Play against AI Snake
