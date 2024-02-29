@@ -68,35 +68,12 @@ class Snake_Head(pygame.sprite.Sprite):
         """
         if self.x_pos % 25 == 0 and self.y_pos % 25 == 0:
             tail:Snake_Tail
-            for i, tail in enumerate(self.tails):
-                if i == 0:                   
-                    tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1], self.x_pos, self.y_pos))                                        
+            for i, tail in enumerate(self.get_tails().sprites()[::-1]):
+                if i == len(self.tails)-1:                   
+                    tail.set_direction(self.facing)                                        
                 else:
-                    tail.set_direction(self.compare_tails(tail.get_pos()[0], tail.get_pos()[1] , self.tails.sprites()[i-1].get_pos()[0], self.tails.sprites()[i-1].get_pos()[1]))
-                    
-
-    def compare_tails(self, x1:int, y1:int, x2:int, y2:int) -> str: 
-        """
-        Compares the positions of two points and determines the direction from the second to the first point.
-
-        Parameters:
-            x1 (int): The x-coordinate of the first point.
-            y1 (int): The y-coordinate of the first point.
-            x2 (int): The x-coordinate of the second point.
-            y2 (int): The y-coordinate of the second point.
-
-        Returns:
-            str: The direction from the second point to the first point.
-        """
-        if x1 == x2 and y1 < y2:
-            return "down"
-        if x1 == x2 and y1 > y2:
-            return "up"    
-        if x1 < x2 and y1 == y2:
-            return "right"
-        if x1 > x2 and y1 == y2:
-            return "left"
-    
+                    tail.set_direction(self.get_tails().sprites()[::-1][i+1].get_direction())
+                
 
     def move(self) -> None:
         """
@@ -137,6 +114,7 @@ class Snake_Head(pygame.sprite.Sprite):
         self.tails.draw(self.screen)
         self.screen.blit(self.image, self.rect)
         
+
     def get_pos(self) -> tuple[int, int]:
         """
         Returns the current position of the snake head.
@@ -146,6 +124,7 @@ class Snake_Head(pygame.sprite.Sprite):
         """
         return (self.x_pos, self.y_pos)
     
+
     def get_tails(self) -> pygame.sprite.Group:
         """
         Returns the group of tails attached to the snake head.
@@ -155,3 +134,11 @@ class Snake_Head(pygame.sprite.Sprite):
         """
         return self.tails
     
+
+    def set_pos(self, x, y) -> None:
+        """
+        Sets the x and y position of the snake head
+        """
+        self.x_pos = x
+        self.y_pos = y
+        self.rect.topleft = (self.x_pos, self.y_pos) 

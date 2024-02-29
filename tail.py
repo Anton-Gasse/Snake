@@ -89,3 +89,12 @@ class Snake_Tail(pygame.sprite.Sprite):
         if facing == "left" or facing == "right":
             self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
             self.image.set_colorkey("white")
+
+    
+    def set_pos(self, x:int, y:int) -> None:
+        """
+        Sets the x and y position of the tail
+        """
+        self.x_pos = x
+        self.y_pos = y
+        self.rect.topleft = (self.x_pos, self.y_pos) 

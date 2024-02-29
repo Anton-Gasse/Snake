@@ -21,7 +21,6 @@ class Game():
         border_free_positions (list): A list of free positions on the game map not occupied by borders.
         snake (Snake_Head): The snake head object.
         next_moves (list): A list of directions for the snake to move next.
-        move_count (int): A counter for the number of moves made by the snake.
         apple (Apple): The apple object.
         last_move (str): The last direction the snake moved.
         start_text (pygame.Surface): The text displayed when the game is paused, prompting the player to start.
@@ -44,7 +43,6 @@ class Game():
         self.border_free_positions = self.get_border_free_positions()
         self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
-        self.move_count = 0
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
         self.start_text = self.font.render("PRESS ENTER OR TAP TO START", False, "White")
@@ -72,11 +70,12 @@ class Game():
                 self.play_events()
                 self.game_map.draw()
                 self.screen.blit(self.score_text, (220, 400))
-                self.snake.move()
+                
                 if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
                     self.snake.set_facing(self.next_moves.pop(0))
-                    
+                self.snake.move()    
                 self.snake.check_tails()
+                self.teleportation()
                 self.snake.draw()
                 self.apple.draw()
                 
@@ -170,12 +169,14 @@ class Game():
         self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
         self.last_move = "up"
-        self.move_count = 10
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
     
 
     def spawn_apple(self) -> None:
+        """
+        Spawns the apple in a random free position
+        """
         x, y = random.choice(self.get_possible_apple_positions())
         self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
         
@@ -224,7 +225,29 @@ class Game():
 
         return positions
       
-                                    
+    def teleportation(self):
+        """
+        Teleports the snake to the other side when going off the map
+        """
+        if self.snake.x_pos >= 900 and self.snake.facing == 'right':
+            self.snake.set_pos(0, self.snake.y_pos)
+        if self.snake.x_pos <= 0 and self.snake.facing == 'left':
+            self.snake.set_pos(900, self.snake.y_pos)
+        if self.snake.y_pos >= 600 and self.snake.facing == 'down':
+            self.snake.set_pos(self.snake.x_pos, 0)
+        if self.snake.y_pos <= 0 and self.snake.facing == 'up':
+            self.snake.set_pos(self.snake.x_pos, 600)
+
+        for tail in self.snake.get_tails():
+            if tail.x_pos >= 900 and tail.facing == 'right':
+                tail.set_pos(0, tail.y_pos)
+            if tail.x_pos <= 0 and tail.facing == 'left':
+                tail.set_pos(900, tail.y_pos)
+            if tail.y_pos >= 600 and tail.facing == 'down':
+                tail.set_pos(tail.x_pos, 0)
+            if tail.y_pos <= 0 and tail.facing == 'up':
+                tail.set_pos(tail.x_pos, 600)
+
 if __name__ == "__main__":
     game = Game()
     asyncio.run(game.gameloop())
