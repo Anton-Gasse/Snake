@@ -17,3 +17,6 @@ You can customize the map.txt file in the utils folder
 * When the Snake goes off the map it teleports to the other side (don't forget to open it)
 
 ![custom map](https://github.com/Anton-Gasse/Snake/blob/main/utils/readme_snake_custom.png?raw=true)
+
+##Coming soon
+Play against AI Snake
