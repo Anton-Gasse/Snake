@@ -1,8 +1,8 @@
-from stable_baselines3 import DQN
+from stable_baselines3 import PPO
 from main_env import SnakeEnv
 
 env = SnakeEnv({})
-model = DQN.load('model', env=env)
+model = PPO.load('./models/model', env=env)
 
 obs = env.reset()[0]
 done, truncated = False, False
