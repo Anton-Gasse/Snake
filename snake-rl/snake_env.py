@@ -1,23 +1,24 @@
 from tail_env import Tail
 
 class Snake():
-
     def __init__(self, x: int, y: int, direct: tuple[int, int]=(0,-1)) -> None:
         self.x: int = x
         self.y: int = y
         self.direct: tuple[int, int] = direct
         self.tails:list[Tail] = []
 
+
     def get_pos(self) -> tuple[int, int]:
         return self.x, self.y
     
+
     def get_direct(self) -> tuple[int, int]:
         return self.direct
+
 
     def change_direct(self, movement: str) -> None:
         if movement == "straight":
             pass
-        
         elif movement == "left-turn":
             if self.direct == (0, -1):
                 self.direct = (-1, 0)
@@ -38,15 +39,18 @@ class Snake():
             elif self.direct == (-1, 0):
                 self.direct = (0, -1)
 
+
     def move(self) -> None:
         self.x += self.direct[0]
         self.y += self.direct[1]
         for tail in self.tails:
             tail.move()
             
+
     def get_tails(self) -> list[Tail]:
         return self.tails
     
+
     def update_tail_directs(self) -> None:
         if len(self.tails) != 0:
             tail: Tail
@@ -55,7 +59,8 @@ class Snake():
                     tail.set_direct(self.direct)
                 else:
                     tail.set_direct(self.tails[::-1][i+1].direct)
-                    
+
+
     def append_tail(self):
         if len(self.tails) == 0:
             if self.direct == (0, -1):
