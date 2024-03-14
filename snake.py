@@ -15,7 +15,7 @@ class Snake_Head(pygame.sprite.Sprite):
         rect (pygame.Rect): The rectangular area occupied by the snake head image on the screen.
         speed (int): The speed at which the snake moves.
     """
-    def __init__(self, x_pos:int, y_pos:int, screen:pygame.Surface) -> None:
+    def __init__(self, x_pos:int, y_pos:int, screen:pygame.Surface, ai:bool) -> None:
         """
         Initializes a Snake_Head object.
 
@@ -23,18 +23,23 @@ class Snake_Head(pygame.sprite.Sprite):
             x_pos (int): The x-coordinate position of the snake head on the screen.
             y_pos (int): The y-coordinate position of the snake head on the screen.
             screen (pygame.Surface): The surface where the snake head will be drawn.
+            ai (bool): Determines if the snake head will be controlled by an ai
         """
         super().__init__()
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.tails = pygame.sprite.Group()
         self.facing = "up"
-        self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
-        self.image.set_colorkey("white")
+        self.ai = ai
+        if self.ai:
+            self.image = pygame.image.load(f"utils/ai_snake_head_{self.facing}.png").convert_alpha()
+        else:
+            self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
+        self.image.set_colorkey((127, 127, 127))
         self.rect = self.image.get_rect()
         self.rect.topleft = (x_pos, y_pos)
         self.screen = screen
-        self.speed = 5
+        self.speed = 6.25
 
 
     def add_tail(self) -> None:
@@ -43,23 +48,23 @@ class Snake_Head(pygame.sprite.Sprite):
         """
         if self.tails.sprites() == []:
             if self.facing == "up":            
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up", self.speed))
+                self.tails.add(Snake_Tail(self.x_pos, self.y_pos + 25, "up", self.speed, ai=self.ai))
             
             elif self.facing == "down":
-                self.tails.add(Snake_Tail(self.x_pos, self.y_pos - 25, "down", self.speed))
+                self.tails.add(Snake_Tail(self.x_pos, self.y_pos - 25, "down", self.speed, ai=self.ai))
             elif self.facing == "right":            
-                self.tails.add(Snake_Tail(self.x_pos - 25, self.y_pos, "right", self.speed))
+                self.tails.add(Snake_Tail(self.x_pos - 25, self.y_pos, "right", self.speed, ai=self.ai))
             elif self.facing == "left":        
-                self.tails.add(Snake_Tail(self.x_pos + 25, self.y_pos, "left", self.speed))
+                self.tails.add(Snake_Tail(self.x_pos + 25, self.y_pos, "left", self.speed, ai=self.ai))
         else:
             if self.tails.sprites()[-1].get_direction() == "up":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] + 25, self.tails.sprites()[-1].get_direction(), self.speed))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] + 25, self.tails.sprites()[-1].get_direction(), self.speed, ai=self.ai))
             elif self.tails.sprites()[-1].get_direction() == "down":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] - 25, self.tails.sprites()[-1].get_direction(), self.speed))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0], self.tails.sprites()[-1].get_pos()[1] - 25, self.tails.sprites()[-1].get_direction(), self.speed, ai=self.ai))
             elif self.tails.sprites()[-1].get_direction() == "right":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] - 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] - 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed, ai=self.ai))
             elif self.tails.sprites()[-1].get_direction() == "left":
-                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] + 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed))
+                self.tails.add(Snake_Tail(self.tails.sprites()[-1].get_pos()[0] + 25, self.tails.sprites()[-1].get_pos()[1], self.tails.sprites()[-1].get_direction(), self.speed, ai=self.ai))
     
     
     def check_tails(self) -> None:
@@ -103,8 +108,11 @@ class Snake_Head(pygame.sprite.Sprite):
             facing (str): The direction the snake head will face.
         """
         self.facing = facing
-        self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
-        self.image.set_colorkey("white")
+        if self.ai:
+            self.image = pygame.image.load(f"utils/ai_snake_head_{self.facing}.png").convert_alpha()
+        else:
+            self.image = pygame.image.load(f"utils/snake_head_{self.facing}.png").convert_alpha()
+        self.image.set_colorkey((127, 127, 127))
 
 
     def draw(self) -> None:

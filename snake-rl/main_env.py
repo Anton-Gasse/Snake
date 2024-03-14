@@ -26,6 +26,8 @@ class SnakeEnv(gymnasium.Env):
 
     def reset(self, seed: int=None, options: dict[str, Any]=None) -> tuple[Any, dict[str, Any]]:
         self.snake: Snake = Snake(2, 2)
+        for i in range(20):
+            self.snake.append_tail()
         self.apple: Apple = Apple(4, 4)
         self.step_counter: int = 0
         self.update_apple()
@@ -57,7 +59,7 @@ class SnakeEnv(gymnasium.Env):
             self.update_apple()
             self.step_counter = 0
             reward += 1
-            if len(self.snake.tails) == 50: print("50 BIGG")
+            
         else:
             snake_x, snake_y = self.snake.get_pos()
             apple_x, apple_y = self.apple.get_pos()
@@ -83,10 +85,7 @@ class SnakeEnv(gymnasium.Env):
 
         d1, d2, d3 = self.get_distance_next_obj()
         obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
-        # tmp_map = []
-        # for line in self.map:
-        #     tmp_map += line
-        # obs = np.array(tmp_map)
+        
         return obs, reward, terminated, truncated, info
 
 
@@ -159,19 +158,23 @@ class SnakeEnv(gymnasium.Env):
         for x in range(snake_x):
             if self.map[snake_y][snake_x-x] == 3:
                 distances[0] = x
+                break
         #going up
         for y in range(snake_y):
             if self.map[snake_y-y][snake_x] == 3:
                 distances[1] = y
+                break
         #going right
         for x in range(self.MAP_WIDTH-snake_x):
             if self.map[snake_y][snake_x+x] == 3:
                 distances[2] = x
+                break
         
         #going down
         for y in range(self.MAP_HEIGHT-snake_y):
             if self.map[snake_y+y][snake_x] == 3:
                 distances[3] = y
+                break
 
         if snake_direct == (-1, 0):
             return distances[3], distances[0], distances[1]
@@ -188,7 +191,7 @@ if __name__ == "__main__":
     test_env.reset()
     done = False
     truncated = False
-    while not done or not truncated:
+    while not done and not truncated:
         action = random.randint(0, 2)
         print("ACTION", action)
         obs, reward, done, truncated, _ = test_env.step(action)
