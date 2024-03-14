@@ -25,7 +25,7 @@ class Apple(pygame.sprite.Sprite):
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.image = pygame.image.load("utils/apple.png").convert_alpha()
-        self.image.set_colorkey("white")
+        self.image.set_colorkey((127, 127, 127))
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x_pos, self.y_pos)
 

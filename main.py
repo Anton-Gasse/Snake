@@ -2,6 +2,7 @@ import sys
 import pygame
 import random
 import asyncio
+from stable_baselines3 import PPO
 from map import Map
 from snake import Snake_Head
 from apple import Apple
@@ -11,6 +12,8 @@ class Game():
     A class representing the game logic and mechanics.
 
     Attributes:
+        WIDTH (int): Width of the game Map
+        HEIGHT (int): Height of the game Map
         screen (pygame.Surface): The surface where the game will be displayed.
         pixels (int): The size of each game block.
         clock (pygame.time.Clock): A clock object to control the game's frame rate.
@@ -19,14 +22,28 @@ class Game():
         gamestatus (str): The current status of the game ("pause" or "play").
         game_map (Map): The map object containing game borders.
         border_free_positions (list): A list of free positions on the game map not occupied by borders.
-        snake (Snake_Head): The snake head object.
+        snake (Snake_Head): The snake head of the Player.
         next_moves (list): A list of directions for the snake to move next.
         apple (Apple): The apple object.
         last_move (str): The last direction the snake moved.
         start_text (pygame.Surface): The text displayed when the game is paused, prompting the player to start.
         score (int): The player's score.
         score_text (pygame.Surface): The text displaying the player's score.
+        ai_opponent (bool): Playing against AI or not.
+        model (PPO | None): AI model trained to play snake.
+        ai_button (pygame.Rect): Button to enable/disable AI opponent.
+        gamemode_button (pygame.Rect): Button to switch gamemode.
+        gamemodes (list): All Gamemodes.
+        gamemode (int): Index of current Gamemode.
+        ai_snake (Snake_Head): The snake head of the AI.
+        ai_apple (Apple): The seccond Apple for the AI.
+        ai_colission (bool): Checks if the AI collided into something it should not.
+
     """
+    with open("utils/map.txt", "r") as m:
+            file = m.readlines()
+            HEIGHT = len(file)
+            WIDTH = len(file[0])-1
     def __init__(self) -> None:
         """
         Initializes the Game object.
@@ -41,13 +58,25 @@ class Game():
         self.gamestatus = "pause"
         self.game_map = Map(self.screen)
         self.border_free_positions = self.get_border_free_positions()
-        self.snake = Snake_Head(100, 400, self.screen)
+        self.snake = Snake_Head(100, 400, self.screen, ai=False)
         self.next_moves = []
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
         self.start_text = self.font.render("PRESS ENTER OR TAP TO START", False, "White")
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+        self.ai_opponent = False
+        try:
+            self.model = PPO.load('./snake-rl/models/first_model')
+            self.ai_button = pygame.Rect(800, 500, 50, 50)
+            self.gamemode_button = pygame.Rect(800, 400, 50, 50)
+            self.gamemodes = ["chase_same_apple", "chase_different_apple"]
+            self.gamemode = 0
+            self.ai_snake = Snake_Head(675, 400, self.screen, ai=True)
+            self.ai_apple = Apple(400, 300, self.screen)
+            self.ai_colission = False
+        except:
+            self.model = None
         
 
     async def gameloop(self) -> None:
@@ -58,12 +87,28 @@ class Game():
             while self.gamestatus == "pause":
                 self.pause_events()
                 self.game_map.draw()
-                self.screen.blit(self.score_text, (220, 400))
                 self.snake.draw()
                 self.apple.draw()
+                
+                if self.model != None and self.ai_opponent:
+                    pygame.draw.rect(self.screen, (40, 200, 40), self.ai_button)
+
+                    if self.gamemodes[self.gamemode] == "chase_same_apple":
+                        pygame.draw.rect(self.screen, (100, 100, 100), self.gamemode_button)
+
+                    elif self.gamemodes[self.gamemode] == "chase_different_apple":
+                        pygame.draw.rect(self.screen, (200, 200, 200), self.gamemode_button)
+                    
+                if self.model != None and not self.ai_opponent:
+                    pygame.draw.rect(self.screen, (200, 40, 40), self.ai_button)
+                if self.ai_opponent:
+                    self.ai_snake.draw()
+                    if self.gamemodes[self.gamemode] == "chase_different_apple":
+                        self.ai_apple.draw()
+                self.screen.blit(self.score_text, (220, 400))
                 self.screen.blit(self.start_text, (95, 200))
                 pygame.display.update()
-                self.clock.tick(60)
+                self.clock.tick(30)
                 await asyncio.sleep(0)
             
             while self.gamestatus == "play":
@@ -71,6 +116,53 @@ class Game():
                 self.game_map.draw()
                 self.screen.blit(self.score_text, (220, 400))
                 
+                if self.ai_opponent:
+                    if not self.ai_colission:
+                        if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
+                            obs = self.get_current_observation()
+                            action, _ = self.model.predict(obs)
+                            
+                            if self.ai_snake.facing == "left":
+                                if action == 1:
+                                    self.ai_snake.set_facing("down") 
+                                elif action == 2:
+                                    self.ai_snake.set_facing("up")
+                            elif self.ai_snake.facing == "up":
+                                if action == 1:
+                                    self.ai_snake.set_facing("left") 
+                                elif action == 2:
+                                    self.ai_snake.set_facing("right")
+                            elif self.ai_snake.facing == "right":
+                                if action == 1:
+                                    self.ai_snake.set_facing("up") 
+                                elif action == 2:
+                                    self.ai_snake.set_facing("down")
+                            elif self.ai_snake.facing == "down":
+                                if action == 1:
+                                    self.ai_snake.set_facing("right") 
+                                elif action == 2:
+                                    self.ai_snake.set_facing("left")
+
+                        self.ai_snake.move()
+                        self.ai_snake.check_tails()
+                    self.ai_snake.draw()
+                    if self.gamemodes[self.gamemode] == "chase_different_apple":
+                        self.ai_apple.draw()
+
+                    if self.gamemodes[self.gamemode] == "chase_same_apple":
+                        tmp_apple = self.apple
+                    elif self.gamemodes[self.gamemode] == "chase_different_apple":
+                        tmp_apple = self.ai_apple
+                    if pygame.sprite.spritecollideany(self.ai_snake, [tmp_apple]):
+                        self.ai_snake.add_tail()
+                        self.spawn_apple(ai=self.gamemodes[self.gamemode] == "chase_different_apple")
+                        self.score -= 1
+                        self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+                    if pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) and pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) != self.ai_snake.get_tails().sprites()[0]:
+                        self.ai_colission = True                   
+                    if pygame.sprite.spritecollideany(self.ai_snake, self.game_map.get_borders()):
+                        self.ai_colission = True
+
                 if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
                     self.snake.set_facing(self.next_moves.pop(0))
                 self.snake.move()    
@@ -90,7 +182,7 @@ class Game():
                     self.gamestatus = "pause"
                 
                 pygame.display.update()
-                self.clock.tick(60)
+                self.clock.tick(30)
                 await asyncio.sleep(0)
         
 
@@ -107,9 +199,22 @@ class Game():
                     self.gamestatus = "play"
                     self.reset()  
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.gamestatus = "play"
-                self.reset()
-
+                if self.model != None:
+                    if self.ai_button.collidepoint(event.pos):
+                        self.ai_opponent = not self.ai_opponent
+                    
+                    elif self.gamemode_button.collidepoint(event.pos):
+                        if self.gamemode == len(self.gamemodes)-1:
+                            self.gamemode = 0
+                        else:
+                            self.gamemode += 1
+                    
+                    else:
+                        self.gamestatus = "play"
+                        self.reset()
+                else:
+                    self.gamestatus = "play"
+                    self.reset()
 
     def play_events(self) -> None:
         """
@@ -120,23 +225,24 @@ class Game():
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.KEYDOWN:
+                max_next_move_legth = 2
                 if event.key == pygame.K_w or event.key == pygame.K_UP:
-                    if self.last_move != "down":
+                    if self.last_move != "down" and len(self.next_moves)<=max_next_move_legth:
                         self.next_moves.append("up") 
                         self.last_move = "up"  
                        
                 if event.key == pygame.K_s or event.key == pygame.K_DOWN:
-                    if self.last_move != "up":
+                    if self.last_move != "up" and len(self.next_moves)<=max_next_move_legth:
                         self.next_moves.append("down") 
                         self.last_move = "down" 
                         
                 if event.key == pygame.K_d or event.key == pygame.K_RIGHT:
-                    if self.last_move != "left":
+                    if self.last_move != "left" and len(self.next_moves)<=max_next_move_legth:
                         self.next_moves.append("right")
                         self.last_move = "right" 
                         
                 if event.key == pygame.K_a or event.key == pygame.K_LEFT:
-                    if self.last_move != "right":
+                    if self.last_move != "right" and len(self.next_moves)<=max_next_move_legth:
                         self.next_moves.append("left")
                         self.last_move = "left"
 
@@ -166,20 +272,24 @@ class Game():
         """
         Resets the game to its initial state.
         """
-        self.snake = Snake_Head(100, 400, self.screen)
+        self.snake = Snake_Head(100, 400, self.screen, ai=False)
         self.next_moves = []
         self.last_move = "up"
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
-    
+        if self.model != None:
+            self.ai_snake = Snake_Head(675, 400, self.screen, ai=True)
+            self.ai_colission = False
 
-    def spawn_apple(self) -> None:
+    def spawn_apple(self, ai=False) -> None:
         """
         Spawns the apple in a random free position
         """
         x, y = random.choice(self.get_possible_apple_positions())
-        self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
-        
+        if not ai:
+            self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
+        else:
+            self.ai_apple = Apple(x*self.pixels, y*self.pixels, self.screen)
 
     def get_possible_apple_positions(self) -> list[tuple[int, int]]:
         """
@@ -198,6 +308,14 @@ class Game():
             for tail in self.snake.get_tails():
                 if tmp_rect.collidepoint(tail.get_pos()):
                     colission = True
+            
+            if self.ai_opponent:
+                if tmp_rect.collidepoint(self.ai_snake.get_pos()):
+                    colission = True
+                for tail in self.ai_snake.get_tails():
+                    if tmp_rect.collidepoint(tail.get_pos()):
+                        colission = True
+
             if colission == False:
                 positions.append((x, y))
         
@@ -213,12 +331,9 @@ class Game():
         """
         positions = []
         border_positions= [border.get_pos() for border in self.game_map.get_borders()]
-        with open("utils/map.txt", "r") as m:
-            file = m.readlines()
-            heigth = len(file)
-            width = len(file[0])-1
-        for y in range(heigth):
-            for x in range(width):
+        
+        for y in range(self.HEIGHT):
+            for x in range(self.WIDTH):
                 if (x*self.pixels, y*self.pixels) in border_positions:
                     continue
                 positions.append((x,y))
@@ -247,6 +362,85 @@ class Game():
                 tail.set_pos(tail.x_pos, 0)
             if tail.y_pos <= 0 and tail.facing == 'up':
                 tail.set_pos(tail.x_pos, 600)
+
+
+    def get_current_observation(self) -> tuple[int, int, int, int, int, int, int]:
+        """
+        Gets the current observation for the AI snake.
+
+        Returns:
+            tuple[int, int, int, int, int, int, int]: Current observation for the AI snake.
+        """
+        directs = {
+            "up": (0, -1),
+            "right": (1, 0),
+            "down": (0, 1),
+            "left": (-1, 0)
+        }
+        d1, d2, d3 = self.get_ai_snake_distances()
+        if self.gamemodes[self.gamemode] == "chase_same_apple":
+            tmp_apple = self.apple
+        elif self.gamemodes[self.gamemode] == "chase_different_apple":
+            tmp_apple = self.ai_apple
+        return (self.ai_snake.x_pos - tmp_apple.x_pos) //25, (self.ai_snake.y_pos - tmp_apple.y_pos) // 25, directs[self.ai_snake.facing][0], directs[self.ai_snake.facing][1], d1, d2, d3
+
+
+    def get_ai_snake_distances(self) -> tuple[int, int, int]:
+        """
+        Gets the current distances (left, straight, right) to the next object the snake should not collide with
+
+        Returns:
+            tuple[int, int, int]: The 3 distances
+        """
+        snake_x, snake_y = self.ai_snake.get_pos()
+        snake_x = int(snake_x)
+        snake_y = int(snake_y)
+        snake_facing = self.ai_snake.facing
+
+        distances = [snake_x//25, snake_y//25, self.WIDTH-snake_x//25-1, self.HEIGHT-snake_y//25-1]
+        tails = self.ai_snake.get_tails().sprites()
+
+        for x in range(snake_x//self.pixels):
+                tmp_rect = pygame.Rect(snake_x-x*self.pixels, snake_y, self.pixels, self.pixels)
+                for tail in tails:
+                    if tmp_rect.collidepoint(tail.get_pos()):
+                        if x < distances[0]:
+                            distances[0] = x
+                        
+
+        for y in range(snake_y//self.pixels):
+                tmp_rect = pygame.Rect(snake_x, snake_y-y*self.pixels, self.pixels, self.pixels)
+                for tail in tails:
+                    if tmp_rect.collidepoint(tail.get_pos()):
+                        if y < distances[1]:
+                            distances[1] = y
+                        
+                    
+        for x in range(self.WIDTH - snake_x//self.pixels):
+                tmp_rect = pygame.Rect(snake_x+x*self.pixels, snake_y, self.pixels, self.pixels)
+                for tail in tails:
+                    if tmp_rect.collidepoint(tail.get_pos()):
+                        if x < distances[2]:
+                            distances[2] = x
+                        
+
+        for y in range(self.HEIGHT - snake_y//self.pixels):
+                tmp_rect = pygame.Rect(snake_x, snake_y+y*self.pixels, self.pixels, self.pixels)
+                for tail in tails:
+                    if tmp_rect.collidepoint(tail.get_pos()):
+                        if y < distances[3]:
+                            distances[3] = y
+                        break
+        
+        
+        if snake_facing == "left":
+            return distances[3], distances[0], distances[1]
+        elif snake_facing == "up":
+            return distances[0], distances[1], distances[2]
+        elif snake_facing == "right":
+            return distances[1], distances[2], distances[3]
+        elif snake_facing == "down":
+            return distances[2], distances[3], distances[0]
 
 if __name__ == "__main__":
     game = Game()

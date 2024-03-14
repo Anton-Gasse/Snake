@@ -13,7 +13,7 @@ class Snake_Tail(pygame.sprite.Sprite):
         rect (pygame.Rect): The rectangular area occupied by the snake tail segment image on the screen.
     """
 
-    def __init__(self, x_pos:int, y_pos:int, facing:int, speed:int) -> None:
+    def __init__(self, x_pos:int, y_pos:int, facing:int, speed:int, ai: bool) -> None:
         """
         Initializes a Snake_Tail object.
 
@@ -22,16 +22,24 @@ class Snake_Tail(pygame.sprite.Sprite):
             y_pos (int): The y-coordinate position of the snake tail segment.
             facing (str): The direction in which the tail segment is facing ('up', 'down', 'left', 'right').
             speed (int): The speed at which the tail segment moves.
+            ai (bool): Determines if the snake tail will be controlled by an ai
         """
         super().__init__()
         self.x_pos = x_pos
         self.y_pos = y_pos
         self.facing = facing
+        self.ai = ai
         if self.facing == "up" or self.facing == "down":
-            self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
+            if self.ai:
+                self.image = pygame.image.load("utils/ai_snake_tail_top_down.png").convert_alpha()
+            else:
+                self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
         elif self.facing == "right" or self.facing == "left":
-            self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
-        self.image.set_colorkey("white")
+            if self.ai:
+                self.image = pygame.image.load("utils/ai_snake_tail_left_right.png").convert_alpha()
+            else:
+                self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
+        self.image.set_colorkey((127, 127, 127))
         self.rect = self.image.get_rect()
         self.rect.topleft = (self.x_pos, self.y_pos)
         self.speed = speed
@@ -83,13 +91,17 @@ class Snake_Tail(pygame.sprite.Sprite):
             facing (str): The new direction in which the tail segment should face ('up', 'down', 'left', 'right').
         """
         self.facing = facing
-        if facing == "up" or facing == "down":
-            self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
-            self.image.set_colorkey("white")
-        if facing == "left" or facing == "right":
-            self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
-            self.image.set_colorkey("white")
-
+        if self.facing == "up" or self.facing == "down":
+            if self.ai:
+                self.image = pygame.image.load("utils/ai_snake_tail_top_down.png").convert_alpha()
+            else:
+                self.image = pygame.image.load("utils/snake_tail_top_down.png").convert_alpha()
+        elif self.facing == "right" or self.facing == "left":
+            if self.ai:
+                self.image = pygame.image.load("utils/ai_snake_tail_left_right.png").convert_alpha()
+            else:
+                self.image = pygame.image.load("utils/snake_tail_left_right.png").convert_alpha()
+        self.image.set_colorkey((127, 127, 127))
     
     def set_pos(self, x:int, y:int) -> None:
         """
