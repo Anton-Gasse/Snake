@@ -6,6 +6,7 @@ from stable_baselines3 import PPO
 from map import Map
 from snake import Snake_Head
 from apple import Apple
+from button import Button
 
 class Game():
     """
@@ -68,11 +69,11 @@ class Game():
         self.ai_opponent = False
         try:
             self.model = PPO.load('./snake-rl/models/first_model')
-            self.ai_button = pygame.Rect(800, 500, 50, 50)
-            self.gamemode_button = pygame.Rect(800, 400, 50, 50)
+            self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
+            self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
             self.gamemodes = ["chase_same_apple", "chase_different_apple"]
             self.gamemode = 0
-            self.ai_snake = Snake_Head(675, 400, self.screen, ai=True)
+            self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
             self.ai_apple = Apple(400, 300, self.screen)
             self.ai_colission = False
         except:
@@ -87,24 +88,19 @@ class Game():
             while self.gamestatus == "pause":
                 self.pause_events()
                 self.game_map.draw()
-                self.snake.draw()
-                self.apple.draw()
                 
-                if self.model != None and self.ai_opponent:
-                    pygame.draw.rect(self.screen, (40, 200, 40), self.ai_button)
-
-                    if self.gamemodes[self.gamemode] == "chase_same_apple":
-                        pygame.draw.rect(self.screen, (100, 100, 100), self.gamemode_button)
-
-                    elif self.gamemodes[self.gamemode] == "chase_different_apple":
-                        pygame.draw.rect(self.screen, (200, 200, 200), self.gamemode_button)
-                    
-                if self.model != None and not self.ai_opponent:
-                    pygame.draw.rect(self.screen, (200, 40, 40), self.ai_button)
+                if self.model != None:
+                    self.ai_button.draw()   
+                    if self.ai_opponent:
+                        self.gamemode_button.draw() 
+                
                 if self.ai_opponent:
                     self.ai_snake.draw()
                     if self.gamemodes[self.gamemode] == "chase_different_apple":
                         self.ai_apple.draw()
+                
+                self.snake.draw()
+                self.apple.draw()
                 self.screen.blit(self.score_text, (220, 400))
                 self.screen.blit(self.start_text, (95, 200))
                 pygame.display.update()
@@ -200,15 +196,21 @@ class Game():
                     self.reset()  
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.model != None:
-                    if self.ai_button.collidepoint(event.pos):
+                    if self.ai_button.rect.collidepoint(event.pos):
                         self.ai_opponent = not self.ai_opponent
-                    
-                    elif self.gamemode_button.collidepoint(event.pos):
+                        if self.ai_opponent:
+                            self.ai_button.image = pygame.image.load("utils/ai_on_button.png").convert_alpha()
+                        else:
+                            self.ai_button.image = pygame.image.load("utils/ai_off_button.png").convert_alpha()
+                        self.ai_button.image.set_colorkey((127, 127, 127))
+
+                    elif self.gamemode_button.rect.collidepoint(event.pos):
                         if self.gamemode == len(self.gamemodes)-1:
                             self.gamemode = 0
                         else:
                             self.gamemode += 1
-                    
+                        self.gamemode_button.image = pygame.image.load(f"utils/gamemode_{self.gamemodes[self.gamemode]}_button.png").convert_alpha()
+                        self.gamemode_button.image.set_colorkey((127, 127, 127))
                     else:
                         self.gamestatus = "play"
                         self.reset()
