@@ -67,6 +67,7 @@ class Game():
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         self.ai_opponent = False
+        self.edit_button = Button(50, 50, self.screen, "utils/edit_button.png")
         try:
             self.model = PPO.load('./snake-rl/models/first_model')
             self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
@@ -86,101 +87,118 @@ class Game():
         """
         while True:
             while self.gamestatus == "pause":
-                self.pause_events()
-                self.game_map.draw()
-                
-                if self.model != None:
-                    self.ai_button.draw()   
-                    if self.ai_opponent:
-                        self.gamemode_button.draw() 
-                
-                if self.ai_opponent:
-                    self.ai_snake.draw()
-                    if self.gamemodes[self.gamemode] == "chase_different_apple":
-                        self.ai_apple.draw()
-                
-                self.snake.draw()
-                self.apple.draw()
-                self.screen.blit(self.score_text, (220, 400))
-                self.screen.blit(self.start_text, (95, 200))
-                pygame.display.update()
-                self.clock.tick(30)
-                await asyncio.sleep(0)
+                await self.pause_loop()
             
             while self.gamestatus == "play":
-                self.play_events()
-                self.game_map.draw()
-                self.screen.blit(self.score_text, (220, 400))
-                
-                if self.ai_opponent:
-                    if not self.ai_colission:
-                        if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
-                            obs = self.get_current_observation()
-                            action, _ = self.model.predict(obs)
-                            
-                            if self.ai_snake.facing == "left":
-                                if action == 1:
-                                    self.ai_snake.set_facing("down") 
-                                elif action == 2:
-                                    self.ai_snake.set_facing("up")
-                            elif self.ai_snake.facing == "up":
-                                if action == 1:
-                                    self.ai_snake.set_facing("left") 
-                                elif action == 2:
-                                    self.ai_snake.set_facing("right")
-                            elif self.ai_snake.facing == "right":
-                                if action == 1:
-                                    self.ai_snake.set_facing("up") 
-                                elif action == 2:
-                                    self.ai_snake.set_facing("down")
-                            elif self.ai_snake.facing == "down":
-                                if action == 1:
-                                    self.ai_snake.set_facing("right") 
-                                elif action == 2:
-                                    self.ai_snake.set_facing("left")
-
-                        self.ai_snake.move()
-                        self.ai_snake.check_tails()
-                    self.ai_snake.draw()
-                    if self.gamemodes[self.gamemode] == "chase_different_apple":
-                        self.ai_apple.draw()
-
-                    if self.gamemodes[self.gamemode] == "chase_same_apple":
-                        tmp_apple = self.apple
-                    elif self.gamemodes[self.gamemode] == "chase_different_apple":
-                        tmp_apple = self.ai_apple
-                    if pygame.sprite.spritecollideany(self.ai_snake, [tmp_apple]):
-                        self.ai_snake.add_tail()
-                        self.spawn_apple(ai=self.gamemodes[self.gamemode] == "chase_different_apple")
-                        self.score -= 1
-                        self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
-                    if pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) and pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) != self.ai_snake.get_tails().sprites()[0]:
-                        self.ai_colission = True                   
-                    if pygame.sprite.spritecollideany(self.ai_snake, self.game_map.get_borders()):
-                        self.ai_colission = True
-
-                if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
-                    self.snake.set_facing(self.next_moves.pop(0))
-                self.snake.move()    
-                self.snake.check_tails()
-                self.teleportation()
-                self.snake.draw()
-                self.apple.draw()
-                
-                if pygame.sprite.spritecollideany(self.snake, [self.apple]):
-                    self.snake.add_tail()
-                    self.spawn_apple()
-                    self.score += 1
-                    self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
-                if pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) and pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) != self.snake.get_tails().sprites()[0]:
-                    self.gamestatus = "pause"                   
-                if pygame.sprite.spritecollideany(self.snake, self.game_map.get_borders()):
-                    self.gamestatus = "pause"
-                
-                pygame.display.update()
-                self.clock.tick(30)
-                await asyncio.sleep(0)
+                await self.play_loop()
         
+            
+
+    async def pause_loop(self):
+        """
+        The pause game loop.
+        """
+        self.pause_events()
+        self.game_map.draw()
+        
+        if self.ai_opponent:
+            self.ai_snake.draw()
+            if self.gamemodes[self.gamemode] == "chase_different_apple":
+                self.ai_apple.draw()
+        
+        self.snake.draw()
+        self.apple.draw()
+        self.screen.blit(self.score_text, (220, 400))
+        self.screen.blit(self.start_text, (95, 200))
+
+        if self.model != None:
+            self.ai_button.draw()   
+            if self.ai_opponent:
+                self.gamemode_button.draw() 
+                
+        self.edit_button.draw()
+        pygame.display.update()
+        self.clock.tick(30)
+        await asyncio.sleep(0)
+
+
+    async def play_loop(self):
+        """
+        The play game loop.
+        """
+        self.play_events()
+        self.game_map.draw()
+        self.screen.blit(self.score_text, (220, 400))
+        
+        if self.ai_opponent:
+            if not self.ai_colission:
+                if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
+                    obs = self.get_current_observation()
+                    action, _ = self.model.predict(obs)
+                    
+                    if self.ai_snake.facing == "left":
+                        if action == 1:
+                            self.ai_snake.set_facing("down") 
+                        elif action == 2:
+                            self.ai_snake.set_facing("up")
+                    elif self.ai_snake.facing == "up":
+                        if action == 1:
+                            self.ai_snake.set_facing("left") 
+                        elif action == 2:
+                            self.ai_snake.set_facing("right")
+                    elif self.ai_snake.facing == "right":
+                        if action == 1:
+                            self.ai_snake.set_facing("up") 
+                        elif action == 2:
+                            self.ai_snake.set_facing("down")
+                    elif self.ai_snake.facing == "down":
+                        if action == 1:
+                            self.ai_snake.set_facing("right") 
+                        elif action == 2:
+                            self.ai_snake.set_facing("left")
+
+                self.ai_snake.move()
+                self.ai_snake.check_tails()
+            self.ai_snake.draw()
+            if self.gamemodes[self.gamemode] == "chase_different_apple":
+                self.ai_apple.draw()
+
+            if self.gamemodes[self.gamemode] == "chase_same_apple":
+                tmp_apple = self.apple
+            elif self.gamemodes[self.gamemode] == "chase_different_apple":
+                tmp_apple = self.ai_apple
+            if pygame.sprite.spritecollideany(self.ai_snake, [tmp_apple]):
+                self.ai_snake.add_tail()
+                self.spawn_apple(ai=self.gamemodes[self.gamemode] == "chase_different_apple")
+                self.score -= 1
+                self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+            if pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) and pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) != self.ai_snake.get_tails().sprites()[0]:
+                self.ai_colission = True                   
+            if pygame.sprite.spritecollideany(self.ai_snake, self.game_map.get_borders()):
+                self.ai_colission = True
+
+        if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
+            self.snake.set_facing(self.next_moves.pop(0))
+        self.snake.move()    
+        self.snake.check_tails()
+        self.teleportation()
+        self.snake.draw()
+        self.apple.draw()
+        
+        if pygame.sprite.spritecollideany(self.snake, [self.apple]):
+            self.snake.add_tail()
+            self.spawn_apple()
+            self.score += 1
+            self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+        if pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) and pygame.sprite.spritecollideany(self.snake, self.snake.get_tails()) != self.snake.get_tails().sprites()[0]:
+            self.gamestatus = "pause"                   
+        if pygame.sprite.spritecollideany(self.snake, self.game_map.get_borders()):
+            self.gamestatus = "pause"
+        
+        pygame.display.update()
+        self.clock.tick(30)
+        await asyncio.sleep(0)
+
 
     def pause_events(self) -> None:
         """
@@ -217,6 +235,7 @@ class Game():
                 else:
                     self.gamestatus = "play"
                     self.reset()
+
 
     def play_events(self) -> None:
         """
@@ -283,6 +302,7 @@ class Game():
             self.ai_snake = Snake_Head(675, 400, self.screen, ai=True)
             self.ai_colission = False
 
+
     def spawn_apple(self, ai=False) -> None:
         """
         Spawns the apple in a random free position
@@ -292,6 +312,7 @@ class Game():
             self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
         else:
             self.ai_apple = Apple(x*self.pixels, y*self.pixels, self.screen)
+
 
     def get_possible_apple_positions(self) -> list[tuple[int, int]]:
         """
@@ -341,7 +362,8 @@ class Game():
                 positions.append((x,y))
 
         return positions
-      
+
+
     def teleportation(self):
         """
         Teleports the snake to the other side when going off the map
@@ -443,6 +465,7 @@ class Game():
             return distances[1], distances[2], distances[3]
         elif snake_facing == "down":
             return distances[2], distances[3], distances[0]
+
 
 if __name__ == "__main__":
     game = Game()
