@@ -20,8 +20,6 @@ class Map():
         """
         self.borders = pygame.sprite.Group()
         self.screen = screen
-        with open("utils/map.txt") as m:
-            self.map_file = m.readlines()
         self.add_borders()
         self.background = pygame.image.load("utils/background.png")
         
@@ -30,9 +28,11 @@ class Map():
         """
         Adds borders to the map based on the layout read from a text file.
         """
-        for i in range(len(self.map_file)):
-            for j in range(len(self.map_file[i])-1):
-                if self.map_file[i][j] == "x":
+        with open("utils/map.txt") as m:
+            map_file = m.readlines()
+        for i in range(len(map_file)):
+            for j in range(len(map_file[i])-1):
+                if map_file[i][j] == "x":
                     self.borders.add(Border(j * 25,i * 25))
 
 
