@@ -42,9 +42,9 @@ class Game():
 
     """
     with open("utils/map.txt", "r") as m:
-            file = m.readlines()
-            HEIGHT = len(file)
-            WIDTH = len(file[0])-1
+            map_file = m.readlines()
+            HEIGHT = len(map_file)
+            WIDTH = len(map_file[0])-1
     def __init__(self) -> None:
         """
         Initializes the Game object.
@@ -68,6 +68,8 @@ class Game():
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         self.ai_opponent = False
         self.edit_button = Button(50, 50, self.screen, "utils/edit_button.png")
+        self.exit_button1 = Button(100, 400, self.screen, "Utils/exit_button.png")
+        self.exit_button2 = Button(775, 400, self.screen, "Utils/exit_button.png")
         try:
             self.model = PPO.load('./snake-rl/models/first_model')
             self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
@@ -91,6 +93,9 @@ class Game():
             
             while self.gamestatus == "play":
                 await self.play_loop()
+
+            while self.gamestatus == "edit":
+                await self.edit_loop()
         
             
 
@@ -200,6 +205,17 @@ class Game():
         await asyncio.sleep(0)
 
 
+    async def edit_loop(self):
+        self.edit_events()
+        self.game_map.draw()
+        self.exit_button1.draw()
+        self.exit_button2.draw()
+
+        pygame.display.update()
+        self.clock.tick(30)
+        await asyncio.sleep(0)
+
+
     def pause_events(self) -> None:
         """
         Handles events while the game is paused.
@@ -229,12 +245,19 @@ class Game():
                             self.gamemode += 1
                         self.gamemode_button.image = pygame.image.load(f"utils/gamemode_{self.gamemodes[self.gamemode]}_button.png").convert_alpha()
                         self.gamemode_button.image.set_colorkey((127, 127, 127))
+
+                    elif self.edit_button.rect.collidepoint(event.pos):
+                        self.gamestatus = "edit"
+
                     else:
                         self.gamestatus = "play"
                         self.reset()
                 else:
-                    self.gamestatus = "play"
-                    self.reset()
+                    if self.edit_button.rect.collidepoint(event.pos):
+                        self.gamestatus = "edit"
+                    else:
+                        self.gamestatus = "play"
+                        self.reset()
 
 
     def play_events(self) -> None:
@@ -289,6 +312,32 @@ class Game():
                         self.last_move = "left"
         
 
+    def edit_events(self):
+        """
+        Handles events while the game is in edit mode.
+        """
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.exit_button1.rect.collidepoint(event.pos) or self.exit_button2.rect.collidepoint(event.pos):
+                    self.gamestatus = "pause"
+                else:
+                    x = event.pos[0]//self.pixels
+                    y = event.pos[1]//self.pixels
+                    if self.map_file[y][x] == 'x':
+                        self.map_file[y] = self.map_file[y][:x] + ' ' + self.map_file[y][x+1:]
+                    else:
+                        self.map_file[y] = self.map_file[y][:x] + 'x' + self.map_file[y][x+1:]
+                    with open("utils/map.txt", "w") as m:
+                        m.truncate()
+                        for line in self.map_file:
+                            m.writelines(line)
+
+                    self.update_borders()
+
     def reset(self) -> None:
         """
         Resets the game to its initial state.
@@ -299,7 +348,7 @@ class Game():
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         if self.model != None:
-            self.ai_snake = Snake_Head(675, 400, self.screen, ai=True)
+            self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
             self.ai_colission = False
 
 
@@ -466,6 +515,13 @@ class Game():
         elif snake_facing == "down":
             return distances[2], distances[3], distances[0]
 
+
+    def update_borders(self):
+        """
+        Updates the borders according to the map file
+        """
+        self.game_map.borders.empty()
+        self.game_map.add_borders()
 
 if __name__ == "__main__":
     game = Game()
