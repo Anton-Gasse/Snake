@@ -2,11 +2,14 @@ import sys
 import pygame
 import random
 import asyncio
-from stable_baselines3 import PPO
 from map import Map
 from snake import Snake_Head
 from apple import Apple
 from button import Button
+try:
+    from stable_baselines3 import PPO
+except:
+    pass
 
 class Game():
     """
@@ -68,8 +71,8 @@ class Game():
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         self.ai_opponent = False
         self.edit_button = Button(50, 50, self.screen, "utils/edit_button.png")
-        self.exit_button1 = Button(100, 400, self.screen, "Utils/exit_button.png")
-        self.exit_button2 = Button(775, 400, self.screen, "Utils/exit_button.png")
+        self.exit_button1 = Button(100, 400, self.screen, "utils/exit_button.png")
+        self.exit_button2 = Button(775, 400, self.screen, "utils/exit_button.png")
         try:
             self.model = PPO.load('./snake-rl/models/first_model')
             self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
@@ -522,6 +525,7 @@ class Game():
         """
         self.game_map.borders.empty()
         self.game_map.add_borders()
+        self.spawn_apple()
 
 if __name__ == "__main__":
     game = Game()
