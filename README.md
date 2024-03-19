@@ -10,7 +10,7 @@ https://anton-gasse.github.io/Snake/
 * Touch: tap the area of the screen in which direction the snake should go
 
 ## Customize
-You can customize the map when clicking the edit button (top-left corner)
+You can customize the map when the game is paused by clicking the edit button (top-left corner)
 * Left Click to add/delete a border
 * When the Snake goes off the map it teleports to the other side (don't forget to open it)
 
