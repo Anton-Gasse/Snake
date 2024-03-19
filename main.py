@@ -101,7 +101,6 @@ class Game():
                 await self.edit_loop()
         
             
-
     async def pause_loop(self):
         """
         The pause game loop.
