@@ -10,13 +10,16 @@ https://anton-gasse.github.io/Snake/
 * Touch: tap the area of the screen in which direction the snake should go
 
 ## Customize
-You can customize the map.txt file in the utils folder
-* There have to be 36 columns and 24 rows
-* Space represents a free Area
-* 'x' represents a border
+You can customize the map when clicking the edit button (top-left corner)
+* Left Click to add/delete a border
 * When the Snake goes off the map it teleports to the other side (don't forget to open it)
 
 ![custom map](https://github.com/Anton-Gasse/Snake/blob/main/utils/readme_snake_custom.png?raw=true)
 
-## Coming soon
-Play against AI Snake
+## AI Snake
+Play against AI Snake (just local)
+* Use the AI Button to activate the AI opponent (top-right corner)
+* When the AI opponent is activatet you can switch between 2 Gamemodes (chasing the same or different apple)
+
+## Coming Soon
+Play in web against AI Snake
