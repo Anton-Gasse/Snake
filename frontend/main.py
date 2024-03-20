@@ -1,11 +1,14 @@
+import os
 import sys
 import pygame
 import random
 import asyncio
+import json
 from map import Map
 from snake import Snake_Head
 from apple import Apple
 from button import Button
+from webmodel import Webmodel
 try:
     from stable_baselines3 import PPO
 except:
@@ -47,7 +50,8 @@ class Game():
     with open("utils/map.txt", "r") as m:
             map_file = m.readlines()
             HEIGHT = len(map_file)
-            WIDTH = len(map_file[0])-1
+            WIDTH = len(map_file[0])-2
+            
     def __init__(self) -> None:
         """
         Initializes the Game object.
@@ -74,16 +78,17 @@ class Game():
         self.exit_button1 = Button(100, 400, self.screen, "utils/exit_button.png")
         self.exit_button2 = Button(775, 400, self.screen, "utils/exit_button.png")
         try:
-            self.model = PPO.load('./snake-rl/models/first_model')
-            self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
-            self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
-            self.gamemodes = ["chase_same_apple", "chase_different_apple"]
-            self.gamemode = 0
-            self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
-            self.ai_apple = Apple(400, 300, self.screen)
-            self.ai_colission = False
+            self.model = PPO.load(os.path.join("..", "backend", "snake-rl", "models", "first_model.zip"))
         except:
-            self.model = None
+            self.model = Webmodel()
+        self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
+        self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
+        self.gamemodes = ["chase_same_apple", "chase_different_apple"]
+        self.gamemode = 0
+        self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
+        self.ai_apple = Apple(400, 300, self.screen)
+        self.ai_colission = False
+        
         
 
     async def gameloop(self) -> None:
@@ -141,7 +146,12 @@ class Game():
             if not self.ai_colission:
                 if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
                     obs = self.get_current_observation()
-                    action, _ = self.model.predict(obs)
+
+                    if isinstance(self.model, Webmodel):
+                        response = await self.model.predict(obs)
+                        action = eval(response)['prediction']
+                    else:
+                        action, _ = self.model.predict(obs)
                     
                     if self.ai_snake.facing == "left":
                         if action == 1:
