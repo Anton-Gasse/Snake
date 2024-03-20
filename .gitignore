@@ -1,1 +1,3 @@
 *__pycache__
+frontend/build
+backend/ssl_keys
