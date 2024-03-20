@@ -3,7 +3,7 @@
 ## Test it out
 https://anton-gasse.github.io/Snake/
 
-![standard map](https://github.com/Anton-Gasse/Snake/blob/main/utils/readme_snake.png?raw=true)
+![standard map](https://github.com/Anton-Gasse/Snake/blob/main/frontend/utils/readme_snake.png?raw=true)
 
 ## How to Play
 * Keyboard: use WASD or Arrow-Keys to change the direction of the Snake
@@ -14,7 +14,7 @@ You can customize the map when the game is paused by clicking the edit button (t
 * Left Click to add/delete a border
 * When the Snake goes off the map it teleports to the other side (don't forget to open it)
 
-![custom map](https://github.com/Anton-Gasse/Snake/blob/main/utils/readme_snake_custom.png?raw=true)
+![custom map](https://github.com/Anton-Gasse/Snake/blob/main/frontend/utils/readme_snake_custom.png?raw=true)
 
 ## AI Snake
 Play against AI Snake (just local)
