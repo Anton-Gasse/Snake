@@ -3,7 +3,6 @@ import sys
 import pygame
 import random
 import asyncio
-import json
 from map import Map
 from snake import Snake_Head
 from apple import Apple

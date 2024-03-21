@@ -1,0 +1,8 @@
+pygame
+pygbag
+flask
+flask-cors
+cryptography
+torch
+stable-baselines3
+gunicorn
