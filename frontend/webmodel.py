@@ -1,6 +1,6 @@
 import sys
+import os
 import platform
-from urllib.parse import urlencode
 import asyncio
 import json
 
@@ -8,7 +8,7 @@ import json
 class Webmodel():
     def __init__(self) -> None:
         self.is_emscripten = sys.platform == "emscripten"
-        self.url = "https://127.0.0.1:5001/prediction"
+        self.url = "https://192.168.0.239:443/prediction"
         POST = "POST"
         if self.is_emscripten:
             self._js_code = """

@@ -5,11 +5,12 @@ import json
 import os
 
 app = Flask(__name__)
-model = PPO.load(os.path.join("snake-rl", "models", "first_model.zip"))
+
+model = PPO.load(os.path.join("backend", "snake-rl", "models", "first_model.zip"))
 
 @app.route('/')
 def game():
-    with open(os.path.join("..", "frontend", "build", "web", "index.html"), "r", encoding='utf-8') as s:
+    with open(os.path.join("frontend", "build", "web", "index.html"), "r", encoding='utf-8') as s:
         return s.read()
 
 @app.route('/frontend.apk')
@@ -38,4 +39,4 @@ if __name__ == '__main__':
     #context = ('./ssl_keys/cert.pem', './ssl_keys/key.pem')#certificate and key files
     cors = CORS(app, resources={r'*': {"origins": '*'}})
     
-    app.run(debug=True, ssl_context='adhoc', host="0.0.0.0", port=5001)
+    app.run(debug=True, ssl_context='adhoc', host="0.0.0.0", port=443)
