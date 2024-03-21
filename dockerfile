@@ -2,10 +2,6 @@ FROM python:3.10
 
 Workdir /snake
 
-copy ./backend/requirements.txt .
-
-#RUN pip3 install -r requirements.txt
-
 RUN pip3 install flask && \
   pip3 install flask-cors && \
   pip3 install cryptography && \
