@@ -22,11 +22,11 @@ Play against AI Snake (just local)
 * When the AI opponent is activatet you can switch between 2 Gamemodes (chasing the same or different apple)
 
 ## How to run it
-Install the requirements:
+1. Install the requirements:
 ```sh
 pip install -r requirements.txt
 ```
-Run the main script in the frontend folder:
+2. Run the main script in the frontend folder:
 ```sh
 cd frontend
 ```
@@ -35,27 +35,27 @@ python3 main.py
 ```
 
 ## How to run it in browser
-Adapt the URL in the [webmodel](./frontend/webmodel.py) class to your ip and port where you will run the Flask Server:
+1. Adapt the URL in the [webmodel](./frontend/webmodel.py) class to your ip and port where you will run the Flask Server:
 * It will be the same as in the [app.run()](./backend/app.py) method
 
-Get the build folder of the app in the frontend folder:
+2. Get the build folder of the app in the frontend folder:
 ```sh
 cd frontend
 ```
 ```sh
 python3 -m pygbag --build --app_name snake main.py
 ```
-Run the Flask Server:
+3. Run the Flask Server:
 ```sh
 python3 ./backend/app.py
 ```
 
 ## How to Dockerize it
-Run the build command:
+1. Run the build command:
 ```sh
 docker build -t snake .
 ```
-Run the run command:
+2. Run the run command:
 ```sh
 docker run --name snake -p <port>:<port> snake
 ```
