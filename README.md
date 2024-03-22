@@ -29,6 +29,8 @@ pip install -r requirements.txt
 Run the main script in the frontend folder:
 ```sh
 cd frontend
+```
+```sh
 python3 main.py
 ```
 
@@ -38,6 +40,8 @@ Adapt the URL in the [webmodel](./frontend/webmodel.py) class to your ip and por
 Get the build folder of the app in the frontend folder:
 ```sh
 cd frontend
+```
+```sh
 python3 -m pygbag --build --app_name snake main.py
 ```
 Run the Flask Server:
