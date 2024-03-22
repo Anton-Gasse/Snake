@@ -34,7 +34,7 @@ cd frontend
 python3 main.py
 ```
 
-## How to run it in browser
+## How to run it in web browser
 1. Adapt the URL in the [webmodel](./frontend/webmodel.py) class to your ip and port where you will run the Flask Server:
 * It will be the same as in the [app.run()](./backend/app.py) method
 
