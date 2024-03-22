@@ -8,8 +8,7 @@ import json
 class Webmodel():
     def __init__(self) -> None:
         self.is_emscripten = sys.platform == "emscripten"
-        self.url = "https://192.168.0.239:443/prediction"
-        POST = "POST"
+        self.url = "https://85.215.104.221:443/prediction"
         if self.is_emscripten:
             self._js_code = """
 window.Fetch = {}
