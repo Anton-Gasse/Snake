@@ -8,6 +8,7 @@ from snake import Snake_Head
 from apple import Apple
 from button import Button
 from webmodel import Webmodel
+
 try:
     from stable_baselines3 import PPO
 except:
@@ -44,7 +45,8 @@ class Game():
         ai_snake (Snake_Head): The snake head of the AI.
         ai_apple (Apple): The seccond Apple for the AI.
         ai_colission (bool): Checks if the AI collided into something it should not.
-
+        ai_next_move(int): Next move of the AI
+        
     """
     with open("utils/map.txt", "r") as m:
             map_file = m.readlines()
@@ -87,7 +89,7 @@ class Game():
         self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
         self.ai_apple = Apple(400, 300, self.screen)
         self.ai_colission = False
-        
+        self.ai_next_move = 0
         
 
     async def gameloop(self) -> None:
@@ -100,6 +102,7 @@ class Game():
             
             while self.gamestatus == "play":
                 await self.play_loop()
+                
 
             while self.gamestatus == "edit":
                 await self.edit_loop()
@@ -143,15 +146,21 @@ class Game():
         
         if self.ai_opponent:
             if not self.ai_colission:
+                
+                await self.update_ai_next_move()
+                
                 if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
-                    obs = self.get_current_observation()
-
-                    if isinstance(self.model, Webmodel):
-                        response = await self.model.predict(obs)
-                        action = eval(response)['prediction']
-                    else:
-                        action, _ = self.model.predict(obs)
                     
+                    while self.ai_next_move == None:
+                        #getting the ai_move from the webmodel
+                        if isinstance(self.model, Webmodel): 
+                            tmp = await self.model.check_update()
+                            if tmp:
+                                if tmp != "nothing":
+                                    self.ai_next_move = eval(tmp)['prediction']
+
+                    action = self.ai_next_move
+                    self.ai_next_move = None
                     if self.ai_snake.facing == "left":
                         if action == 1:
                             self.ai_snake.set_facing("down") 
@@ -215,6 +224,25 @@ class Game():
         self.clock.tick(30)
         await asyncio.sleep(0)
 
+    async def update_ai_next_move(self):
+        obs = None
+        if (self.ai_snake.x_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'right':
+            obs = self.get_observation(self.ai_snake.x_pos+self.pixels-self.ai_snake.speed, self.ai_snake.y_pos)
+        elif (self.ai_snake.x_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'left':
+            obs = self.get_observation(self.ai_snake.x_pos-self.pixels+self.ai_snake.speed, self.ai_snake.y_pos)
+        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'down':
+            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos+self.pixels-self.ai_snake.speed)
+        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'up':
+            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos-self.pixels+self.ai_snake.speed)
+
+        if obs != None:
+            if isinstance(self.model, Webmodel):
+                await self.model.emit(obs)
+                
+            else:
+                self.ai_next_move, _ = self.model.predict(obs)
+        
+                    
 
     async def edit_loop(self):
         self.edit_events()
@@ -356,6 +384,7 @@ class Game():
         self.snake = Snake_Head(100, 400, self.screen, ai=False)
         self.next_moves = []
         self.last_move = "up"
+        self.ai_next_move = 0
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         if self.model != None:
@@ -448,9 +477,13 @@ class Game():
                 tail.set_pos(tail.x_pos, 600)
 
 
-    def get_current_observation(self) -> tuple[int, int, int, int, int, int, int]:
+    def get_observation(self, x:int, y:int) -> tuple[int, int, int, int, int, int, int]:
         """
         Gets the current observation for the AI snake.
+
+        Parameters:
+            x (int): The x-coordinate for the observation.
+            y (int): The y-coordinate for the observation.
 
         Returns:
             tuple[int, int, int, int, int, int, int]: Current observation for the AI snake.
@@ -461,24 +494,27 @@ class Game():
             "down": (0, 1),
             "left": (-1, 0)
         }
-        d1, d2, d3 = self.get_ai_snake_distances()
+        d1, d2, d3 = self.get_distances(x, y)
         if self.gamemodes[self.gamemode] == "chase_same_apple":
             tmp_apple = self.apple
         elif self.gamemodes[self.gamemode] == "chase_different_apple":
             tmp_apple = self.ai_apple
-        return (self.ai_snake.x_pos - tmp_apple.x_pos) //25, (self.ai_snake.y_pos - tmp_apple.y_pos) // 25, directs[self.ai_snake.facing][0], directs[self.ai_snake.facing][1], d1, d2, d3
+        return (x - tmp_apple.x_pos) //25, (y - tmp_apple.y_pos) // 25, directs[self.ai_snake.facing][0], directs[self.ai_snake.facing][1], d1, d2, d3
 
 
-    def get_ai_snake_distances(self) -> tuple[int, int, int]:
+    def get_distances(self, x_pos:int, y_pos:int) -> tuple[int, int, int]:
         """
         Gets the current distances (left, straight, right) to the next object the snake should not collide with
+
+        Parameters:
+            x (int): The x-coordinate from where the distances are calculated.
+            y (int): The y-coordinate from where the distances are calculated.
 
         Returns:
             tuple[int, int, int]: The 3 distances
         """
-        snake_x, snake_y = self.ai_snake.get_pos()
-        snake_x = int(snake_x)
-        snake_y = int(snake_y)
+        snake_x = int(x_pos)
+        snake_y = int(y_pos)
         snake_facing = self.ai_snake.facing
 
         distances = [snake_x//25, snake_y//25, self.WIDTH-snake_x//25-1, self.HEIGHT-snake_y//25-1]

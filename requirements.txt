@@ -2,6 +2,7 @@ pygame
 pygbag
 flask
 flask-cors
+flask-socketio
 cryptography
 torch
 stable-baselines3

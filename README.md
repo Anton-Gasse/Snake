@@ -45,7 +45,10 @@ cd frontend
 ```sh
 python3 -m pygbag --build --app_name snake main.py
 ```
-3. Run the Flask Server:
+3. Run the Flask Server in the snake folder:
+```sh
+cd ..
+```
 ```sh
 python3 ./backend/app.py
 ```
