@@ -17,8 +17,8 @@ You can customize the map by clicking the edit button (top-left-corner)
 ![custom map](https://github.com/Anton-Gasse/Snake/blob/main/frontend/utils/readme_snake_custom.png?raw=true)
 
 ## AI Snake
-Play against AI Snake (just local)
-* Use the AI Button to activate the AI opponent (top-right corner)
+Play against AI Snake
+* Use the AI Button to activate the AI opponent
 * When the AI opponent is activatet you can switch between 2 Gamemodes (chasing the same or different apple)
 
 ## How to run it
