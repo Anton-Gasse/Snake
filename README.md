@@ -1,7 +1,7 @@
 # Snake
 
 ## Test it out
-https://anton-gasse.github.io/Snake/
+https://anton-gasse.de
 
 ![standard map](https://github.com/Anton-Gasse/Snake/blob/main/frontend/utils/readme_snake.png?raw=true)
 
@@ -63,5 +63,3 @@ docker build -t snake .
 docker run --name snake -p <port>:<port> snake
 ```
 
-## Coming Soon
-Play in web against AI Snake
