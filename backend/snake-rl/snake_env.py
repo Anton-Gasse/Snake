@@ -6,6 +6,8 @@ class Snake():
         self.y: int = y
         self.direct: tuple[int, int] = direct
         self.tails:list[Tail] = []
+        for i in range(3):
+            self.append_tail()
 
 
     def get_pos(self) -> tuple[int, int]:

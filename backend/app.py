@@ -50,7 +50,7 @@ def prediction(obs):
 
 
 if __name__ == '__main__':
-    #context = ('./ssl_keys/cert.pem', './ssl_keys/key.pem')#certificate and key files
+    #context = ('./backend/ssl_keys/cert.pem', './backend/ssl_keys/key.pem')#certificate and key files
     cors = CORS(app, resources={r'*': {"origins": '*'}})
     
     socketio.run(app, debug=True, allow_unsafe_werkzeug=True, ssl_context='adhoc', host="0.0.0.0", port=443)

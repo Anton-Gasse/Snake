@@ -15,7 +15,8 @@ class SnakeEnv(gymnasium.Env):
 
     def __init__(self, env_config: dict):
         self.action_space: spaces.Discrete = spaces.Discrete(3)
-        self.observation_space: spaces.Box = spaces.Box(low=np.array([-self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1, 1, 1, 1]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1, max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH)]), shape=(7,), dtype=int)
+        self.observation_space: spaces.Box = spaces.Box(low=0, high=4, shape=(self.MAP_HEIGHT, self.MAP_WIDTH), dtype=int)
+        #self.observation_space: spaces.Box = spaces.Box(low=np.array([-self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1, 1, 1, 1]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1, max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH)]), shape=(7,), dtype=int)
         self.map: list[list[str]] = [[0 for _ in range(self.MAP_WIDTH)] for _ in range(self.MAP_HEIGHT)]
         self.map[0] = [1 for _ in range(self.MAP_WIDTH)]
         self.map[-1] = [1 for _ in range(self.MAP_WIDTH)]
@@ -25,9 +26,9 @@ class SnakeEnv(gymnasium.Env):
 
 
     def reset(self, seed: int=None, options: dict[str, Any]=None) -> tuple[Any, dict[str, Any]]:
-        self.snake: Snake = Snake(2, 2)
-        for i in range(20):
-            self.snake.append_tail()
+        self.snake: Snake = Snake(31, 16)
+        # for i in range(20):
+        #     self.snake.append_tail()
         self.apple: Apple = Apple(4, 4)
         self.step_counter: int = 0
         self.update_apple()
@@ -35,8 +36,8 @@ class SnakeEnv(gymnasium.Env):
         snake_x, snake_y = self.snake.get_pos()
         apple_x, apple_y = self.apple.get_pos()
         d1, d2, d3 = self.get_distance_next_obj()
-        obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
-        
+        #obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
+        obs = np.array(self.map)
         info = {}
         return obs, info
     
@@ -84,8 +85,8 @@ class SnakeEnv(gymnasium.Env):
         apple_x, apple_y = self.apple.get_pos()
 
         d1, d2, d3 = self.get_distance_next_obj()
-        obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
-        
+        #obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
+        obs = np.array(self.map)
         return obs, reward, terminated, truncated, info
 
 
@@ -117,7 +118,8 @@ class SnakeEnv(gymnasium.Env):
         positions: list[tuple[int, int]] = []
         for y in range(self.MAP_HEIGHT):
             for x in range(self.MAP_WIDTH):
-                if self.map[y][x] not in [1, 2, 3, 4]:
+                if self.map[y][x] not in [1, 2, 3, 4] and math.sqrt((x - self.snake.x)**2 + (y - self.snake.y)**2) <= len(self.snake.get_tails()):
+
                     positions.append((x, y))
         
         return positions
@@ -198,4 +200,3 @@ if __name__ == "__main__":
         print("REWARD", reward)
         print("OBS", obs)
         test_env.render()
-    
