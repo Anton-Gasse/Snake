@@ -6,6 +6,7 @@ import asyncio
 from map import Map
 from snake import Snake_Head
 from apple import Apple
+from ai_apple import AI_Apple
 from button import Button
 from webmodel import Webmodel
 
@@ -89,7 +90,7 @@ class Game():
         self.gamemodes = ["chase_same_apple", "chase_different_apple"]
         self.gamemode = 0
         self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
-        self.ai_apple = Apple(400, 300, self.screen)
+        self.ai_apple = AI_Apple(400, 300, self.screen)
         self.ai_colission = False
         self.ai_next_move = 0
         self.ai_colission_score = 0
@@ -411,7 +412,7 @@ class Game():
         if not ai:
             self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
         else:
-            self.ai_apple = Apple(x*self.pixels, y*self.pixels, self.screen)
+            self.ai_apple = AI_Apple(x*self.pixels, y*self.pixels, self.screen)
 
 
     def get_possible_apple_positions(self) -> list[tuple[int, int]]:
