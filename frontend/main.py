@@ -187,6 +187,7 @@ class Game():
 
                 self.ai_snake.move()
                 self.ai_snake.check_tails()
+                self.teleportation(self.ai_snake)
 
                 if self.gamemodes[self.gamemode] == "chase_same_apple":
                     tmp_apple = self.apple
@@ -218,7 +219,7 @@ class Game():
             self.snake.set_facing(self.next_moves.pop(0))
         self.snake.move()    
         self.snake.check_tails()
-        self.teleportation()
+        self.teleportation(self.snake)
         self.snake.draw()
         self.apple.draw()
         
@@ -450,30 +451,30 @@ class Game():
         return positions
 
 
-    def teleportation(self) -> None:
+    def teleportation(self, snake: Snake_Head) -> None:
         """
         Teleports the snake to the other side when going off the map
         """
-        if self.snake.x_pos >= 900 and self.snake.facing == 'right':
-            self.snake.set_pos(0, self.snake.y_pos)
-        if self.snake.x_pos <= 0 and self.snake.facing == 'left':
-            self.snake.set_pos(900, self.snake.y_pos)
-        if self.snake.y_pos >= 600 and self.snake.facing == 'down':
-            self.snake.set_pos(self.snake.x_pos, 0)
-        if self.snake.y_pos <= 0 and self.snake.facing == 'up':
-            self.snake.set_pos(self.snake.x_pos, 600)
+        if snake.x_pos > self.WIDTH*self.pixels and snake.facing == 'right':
+            snake.set_pos(snake.speed, snake.y_pos)
+        if snake.x_pos < 0 and snake.facing == 'left':
+            snake.set_pos(self.WIDTH*self.pixels-snake.speed, snake.y_pos)
+        if snake.y_pos > self.HEIGHT*self.pixels and snake.facing == 'down':
+            snake.set_pos(snake.x_pos, snake.speed)
+        if snake.y_pos < 0 and snake.facing == 'up':
+            snake.set_pos(snake.x_pos, self.HEIGHT*self.pixels-snake.speed)
 
-        for tail in self.snake.get_tails():
-            if tail.x_pos >= 900 and tail.facing == 'right':
-                tail.set_pos(0, tail.y_pos)
-            if tail.x_pos <= 0 and tail.facing == 'left':
-                tail.set_pos(900, tail.y_pos)
-            if tail.y_pos >= 600 and tail.facing == 'down':
-                tail.set_pos(tail.x_pos, 0)
-            if tail.y_pos <= 0 and tail.facing == 'up':
-                tail.set_pos(tail.x_pos, 600)
-
-
+        for tail in snake.get_tails():
+            if tail.x_pos > self.WIDTH*self.pixels and tail.facing == 'right':
+                tail.set_pos(tail.speed, tail.y_pos)
+            if tail.x_pos < 0 and tail.facing == 'left':
+                tail.set_pos(self.WIDTH*self.pixels-tail.speed, tail.y_pos)
+            if tail.y_pos > self.HEIGHT*self.pixels and tail.facing == 'down':
+                tail.set_pos(tail.x_pos, tail.speed)
+            if tail.y_pos < 0 and tail.facing == 'up':
+                tail.set_pos(tail.x_pos, self.HEIGHT*self.pixels-snake.speed)
+        
+        
     async def update_ai_next_move(self) -> None:
         """
         Updates the next move of the AI
