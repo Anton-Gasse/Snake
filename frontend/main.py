@@ -480,13 +480,13 @@ class Game():
         Updates the next move of the AI
         """
         obs = None
-        if (self.ai_snake.x_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'right':
+        if (self.ai_snake.x_pos-self.ai_snake.speed) % self.pixels == 0 and self.ai_snake.y_pos % self.pixels == 0 and self.ai_snake.facing == 'right':
             obs = self.get_observation(self.ai_snake.x_pos+self.pixels-self.ai_snake.speed, self.ai_snake.y_pos)
-        elif (self.ai_snake.x_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'left':
+        elif (self.ai_snake.x_pos+self.ai_snake.speed) % self.pixels == 0 and self.ai_snake.y_pos % self.pixels == 0 and self.ai_snake.facing == 'left':
             obs = self.get_observation(self.ai_snake.x_pos-self.pixels+self.ai_snake.speed, self.ai_snake.y_pos)
-        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'down':
+        elif self.ai_snake.x_pos % self.pixels == 0 and (self.ai_snake.y_pos-self.ai_snake.speed) % self.pixels == 0 and self.ai_snake.facing == 'down':
             obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos+self.pixels-self.ai_snake.speed)
-        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'up':
+        elif self.ai_snake.x_pos % self.pixels == 0 and (self.ai_snake.y_pos+self.ai_snake.speed) % self.pixels == 0 and self.ai_snake.facing == 'up':
             obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos-self.pixels+self.ai_snake.speed)
 
         if obs != None:
@@ -519,7 +519,7 @@ class Game():
             tmp_apple = self.apple
         elif self.gamemodes[self.gamemode] == "chase_different_apple":
             tmp_apple = self.ai_apple
-        return (x - tmp_apple.x_pos) //25, (y - tmp_apple.y_pos) // 25, directs[self.ai_snake.facing][0], directs[self.ai_snake.facing][1], d1, d2, d3
+        return (x - tmp_apple.x_pos) //self.pixels, (y - tmp_apple.y_pos) // self.pixels, directs[self.ai_snake.facing][0], directs[self.ai_snake.facing][1], d1, d2, d3
 
 
     def get_distances(self, x_pos:int, y_pos:int) -> tuple[int, int, int]:
@@ -537,7 +537,7 @@ class Game():
         snake_y = int(y_pos)
         snake_facing = self.ai_snake.facing
 
-        distances = [snake_x//25, snake_y//25, self.WIDTH-snake_x//25-1, self.HEIGHT-snake_y//25-1]
+        distances = [snake_x//self.pixels, snake_y//self.pixels, self.WIDTH-snake_x//self.pixels-1, self.HEIGHT-snake_y//self.pixels-1]
         tails = self.ai_snake.get_tails().sprites()
         borders = self.game_map.get_borders().sprites()
         
@@ -616,6 +616,7 @@ class Game():
         self.game_map.borders.empty()
         self.game_map.add_borders()
         self.spawn_apple()
+
 
 if __name__ == "__main__":
     game = Game()
