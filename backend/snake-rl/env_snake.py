@@ -1,4 +1,4 @@
-from tail_env import Tail
+from env_tail import Tail
 
 class Snake():
     def __init__(self, x: int, y: int, direct: tuple[int, int]=(0,-1)) -> None:

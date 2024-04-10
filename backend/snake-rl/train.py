@@ -5,12 +5,10 @@ from main_env import SnakeEnv
 env = SnakeEnv({})
 
 try:
-    #model = DQN.load('./models/model', env=env)
     model = PPO.load('./models/model', env=env)
     print("found model")
 except:
     print("found no model")
-    #model = DQN("MlpPolicy", env, verbose=1)
     model = PPO("MlpPolicy", env, verbose=1)
 
 model.learn(total_timesteps=1500000, log_interval=4)
