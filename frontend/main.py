@@ -5,6 +5,7 @@ import random
 import asyncio
 from map import Map
 from snake import Snake_Head
+from ai_snake import AI_Snake_Head
 from apple import Apple
 from ai_apple import AI_Apple
 from button import Button
@@ -43,7 +44,7 @@ class Game():
         gamemode_button (pygame.Rect): Button to switch gamemode.
         gamemodes (list): All Gamemodes.
         gamemode (int): Index of current Gamemode.
-        ai_snake (Snake_Head): The snake head of the AI.
+        ai_snake (AI_Snake_Head): The snake head of the AI.
         ai_apple (Apple): The seccond Apple for the AI.
         ai_colission (bool): Checks if the AI collided into something it should not.
         ai_next_move(int): Next move of the AI
@@ -70,7 +71,7 @@ class Game():
         self.gamestatus = "pause"
         self.game_map = Map(self.screen)
         self.border_free_positions = self.get_border_free_positions()
-        self.snake = Snake_Head(100, 400, self.screen, ai=False)
+        self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
@@ -89,7 +90,7 @@ class Game():
         self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
         self.gamemodes = ["chase_same_apple", "chase_different_apple"]
         self.gamemode = 0
-        self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
+        self.ai_snake = AI_Snake_Head(775, 400, self.screen)
         self.ai_apple = AI_Apple(400, 300, self.screen)
         self.ai_colission = False
         self.ai_next_move = 0
@@ -194,7 +195,7 @@ class Game():
             else:
                 if self.ai_colission_score + self.RESPAWN_AFTER == self.score:
                     self.ai_next_move = 0
-                    self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
+                    self.ai_snake = AI_Snake_Head(775, 400, self.screen)
                     self.ai_colission = False
 
             self.ai_snake.draw()
@@ -357,14 +358,14 @@ class Game():
         """
         Resets the game to its initial state.
         """
-        self.snake = Snake_Head(100, 400, self.screen, ai=False)
+        self.snake = Snake_Head(100, 400, self.screen)
         self.next_moves = []
         self.last_move = "up"
         self.ai_next_move = 0
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         if self.model != None:
-            self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
+            self.ai_snake = AI_Snake_Head(775, 400, self.screen)
             self.ai_colission = False
 
 
@@ -465,7 +466,7 @@ class Game():
         return positions
 
 
-    def teleportation(self, snake: Snake_Head) -> None:
+    def teleportation(self, snake: Snake_Head | AI_Snake_Head) -> None:
         """
         Teleports the snake to the other side when going off the map
         """
