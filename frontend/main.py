@@ -455,22 +455,22 @@ class Game():
         """
         Teleports the snake to the other side when going off the map
         """
-        if snake.x_pos > self.WIDTH*self.pixels and snake.facing == 'right':
-            snake.set_pos(snake.speed, snake.y_pos)
+        if snake.x_pos > self.WIDTH*self.pixels-self.pixels and snake.facing == 'right':
+            snake.set_pos(-self.pixels+snake.speed, snake.y_pos)
         if snake.x_pos < 0 and snake.facing == 'left':
             snake.set_pos(self.WIDTH*self.pixels-snake.speed, snake.y_pos)
-        if snake.y_pos > self.HEIGHT*self.pixels and snake.facing == 'down':
-            snake.set_pos(snake.x_pos, snake.speed)
+        if snake.y_pos > self.HEIGHT*self.pixels-self.pixels and snake.facing == 'down':
+            snake.set_pos(snake.x_pos, -self.pixels+snake.speed)
         if snake.y_pos < 0 and snake.facing == 'up':
             snake.set_pos(snake.x_pos, self.HEIGHT*self.pixels-snake.speed)
 
         for tail in snake.get_tails():
-            if tail.x_pos > self.WIDTH*self.pixels and tail.facing == 'right':
-                tail.set_pos(tail.speed, tail.y_pos)
+            if tail.x_pos > self.WIDTH*self.pixels-self.pixels and tail.facing == 'right':
+                tail.set_pos(-self.pixels+tail.speed, tail.y_pos)
             if tail.x_pos < 0 and tail.facing == 'left':
                 tail.set_pos(self.WIDTH*self.pixels-tail.speed, tail.y_pos)
-            if tail.y_pos > self.HEIGHT*self.pixels and tail.facing == 'down':
-                tail.set_pos(tail.x_pos, tail.speed)
+            if tail.y_pos > self.HEIGHT*self.pixels-self.pixels and tail.facing == 'down':
+                tail.set_pos(tail.x_pos, -self.pixels+tail.speed)
             if tail.y_pos < 0 and tail.facing == 'up':
                 tail.set_pos(tail.x_pos, self.HEIGHT*self.pixels-snake.speed)
         
