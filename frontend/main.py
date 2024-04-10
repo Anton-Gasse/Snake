@@ -46,6 +46,8 @@ class Game():
         ai_apple (Apple): The seccond Apple for the AI.
         ai_colission (bool): Checks if the AI collided into something it should not.
         ai_next_move(int): Next move of the AI
+        ai_colission_score(int): Score when AI collided with anything
+        RESPAWN_AFTER(int): After how many eaten apples the AI respawns
         
     """
     with open("utils/map.txt", "r") as m:
