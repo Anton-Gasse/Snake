@@ -31,6 +31,7 @@ class Game():
         gamestatus (str): The current status of the game ("pause" or "play").
         game_map (Map): The map object containing game borders.
         border_free_positions (list): A list of free positions on the game map not occupied by borders.
+        speed (flaot): speed of the snake
         snake (Snake_Head): The snake head of the Player.
         next_moves (list): A list of directions for the snake to move next.
         apple (Apple): The apple object.
@@ -47,10 +48,9 @@ class Game():
         ai_snake (AI_Snake_Head): The snake head of the AI.
         ai_apple (Apple): The seccond Apple for the AI.
         ai_colission (bool): Checks if the AI collided into something it should not.
-        ai_next_move(int): Next move of the AI
-        ai_colission_score(int): Score when AI collided with anything
-        RESPAWN_AFTER(int): After how many eaten apples the AI respawns
-        
+        ai_next_move (int): Next move of the AI
+        ai_colission_score (int): Score when AI collided with anything
+        RESPAWN_AFTER (int): After how many eaten apples the AI respawns
     """
     with open("utils/map.txt", "r") as m:
             map_file = m.readlines()
@@ -71,7 +71,8 @@ class Game():
         self.gamestatus = "pause"
         self.game_map = Map(self.screen)
         self.border_free_positions = self.get_border_free_positions()
-        self.snake = Snake_Head(100, 400, self.screen)
+        self.speed = 5
+        self.snake = Snake_Head(100, 400, self.speed, self.screen)
         self.next_moves = []
         self.apple = Apple(400, 300, self.screen)
         self.last_move = "up"
@@ -80,6 +81,7 @@ class Game():
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         self.ai_opponent = False
         self.edit_button = Button(50, 50, self.screen, "utils/edit_button.png")
+        self.speed_button = Button(50, 125, self.screen, "utils/normal_speed_button.png")
         self.exit_button1 = Button(100, 400, self.screen, "utils/exit_button.png")
         self.exit_button2 = Button(775, 400, self.screen, "utils/exit_button.png")
         try:
@@ -90,8 +92,8 @@ class Game():
         self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
         self.gamemodes = ["chase_same_apple", "chase_different_apple"]
         self.gamemode = 0
-        self.ai_snake = AI_Snake_Head(775, 400, self.screen)
-        self.ai_apple = AI_Apple(400, 300, self.screen)
+        self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
+        self.ai_apple = AI_Apple(425, 300, self.screen)
         self.ai_colission = False
         self.ai_next_move = 0
         self.ai_colission_score = 0
@@ -136,6 +138,8 @@ class Game():
                 self.gamemode_button.draw() 
                 
         self.edit_button.draw()
+        self.speed_button.draw()
+
         pygame.display.update()
         self.clock.tick(30)
         await asyncio.sleep(0)
@@ -252,7 +256,7 @@ class Game():
                         else:
                             self.ai_button.image = pygame.image.load("utils/ai_off_button.png").convert_alpha()
                         self.ai_button.image.set_colorkey((127, 127, 127))
-
+                        break
                     elif self.gamemode_button.rect.collidepoint(event.pos):
                         if self.gamemode == len(self.gamemodes)-1:
                             self.gamemode = 0
@@ -260,19 +264,17 @@ class Game():
                             self.gamemode += 1
                         self.gamemode_button.image = pygame.image.load(f"utils/gamemode_{self.gamemodes[self.gamemode]}_button.png").convert_alpha()
                         self.gamemode_button.image.set_colorkey((127, 127, 127))
+                        break
+                    
+                if self.edit_button.rect.collidepoint(event.pos):
+                    self.gamestatus = "edit"
+                
+                elif self.speed_button.rect.collidepoint(event.pos):
+                    self.change_speed()
 
-                    elif self.edit_button.rect.collidepoint(event.pos):
-                        self.gamestatus = "edit"
-
-                    else:
-                        self.gamestatus = "play"
-                        self.reset()
                 else:
-                    if self.edit_button.rect.collidepoint(event.pos):
-                        self.gamestatus = "edit"
-                    else:
-                        self.gamestatus = "play"
-                        self.reset()
+                    self.gamestatus = "play"
+                    self.reset()
 
 
     def play_events(self) -> None:
@@ -358,14 +360,14 @@ class Game():
         """
         Resets the game to its initial state.
         """
-        self.snake = Snake_Head(100, 400, self.screen)
+        self.snake = Snake_Head(100, 400, self.speed, self.screen)
         self.next_moves = []
         self.last_move = "up"
         self.ai_next_move = 0
         self.score = 0
         self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
         if self.model != None:
-            self.ai_snake = AI_Snake_Head(775, 400, self.screen)
+            self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
             self.ai_colission = False
 
 
@@ -469,6 +471,8 @@ class Game():
     def teleportation(self, snake: Snake_Head | AI_Snake_Head) -> None:
         """
         Teleports the snake to the other side when going off the map
+        Parameters:
+            snake (Snake_Head | AI_Snake_Head): The snake that should be teleported.
         """
         if snake.x_pos > self.WIDTH*self.pixels-self.pixels and snake.facing == 'right':
             snake.set_pos(-self.pixels+snake.speed, snake.y_pos)
@@ -631,6 +635,19 @@ class Game():
         self.game_map.borders.empty()
         self.game_map.add_borders()
         self.spawn_apple()
+
+
+    def change_speed(self) -> None:
+        """
+        Changes the speed of the snake
+        """
+        if self.speed == 3.125:
+            self.speed = 5
+        elif self.speed == 5:
+            self.speed = 6.25
+        elif self.speed == 6.25:
+            self.speed = 3.125
+        print("changed speed")
 
 
 if __name__ == "__main__":

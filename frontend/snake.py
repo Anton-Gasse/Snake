@@ -15,13 +15,14 @@ class Snake_Head(pygame.sprite.Sprite):
         rect (pygame.Rect): The rectangular area occupied by the snake head image on the screen.
         speed (int): The speed at which the snake moves.
     """
-    def __init__(self, x_pos:int, y_pos:int, screen:pygame.Surface) -> None:
+    def __init__(self, x_pos:int, y_pos:int, speed:float, screen:pygame.Surface) -> None:
         """
         Initializes a Snake_Head object.
 
         Parameters:
             x_pos (int): The x-coordinate position of the snake head on the screen.
             y_pos (int): The y-coordinate position of the snake head on the screen.
+            speed (float): The speed at which the snake moves.
             screen (pygame.Surface): The surface where the snake head will be drawn.
         """
         super().__init__()
@@ -34,7 +35,7 @@ class Snake_Head(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x_pos, y_pos)
         self.screen = screen
-        self.speed = 6.25
+        self.speed = speed
         for _ in range(3):
             self.add_tail()
 

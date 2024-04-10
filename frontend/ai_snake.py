@@ -4,8 +4,8 @@ from ai_tail import AI_Snake_Tail
 
 class AI_Snake_Head(Snake_Head):
 
-    def __init__(self, x_pos: int, y_pos: int, screen: pygame.Surface) -> None:
-        super().__init__(x_pos, y_pos, screen)
+    def __init__(self, x_pos: int, y_pos: int, speed: float, screen: pygame.Surface) -> None:
+        super().__init__(x_pos, y_pos, speed, screen)
         self.image = pygame.image.load(f"utils/ai_snake_head_{self.facing}.png").convert_alpha()
         self.image.set_colorkey((127, 127, 127))
         self.rect = self.image.get_rect()
