@@ -79,7 +79,7 @@ class Game():
         self.exit_button1 = Button(100, 400, self.screen, "utils/exit_button.png")
         self.exit_button2 = Button(775, 400, self.screen, "utils/exit_button.png")
         try:
-            self.model = PPO.load(os.path.join("..", "backend", "snake-rl", "models", "first_model.zip"))
+            self.model = PPO.load(os.path.join("..", "backend", "snake-rl", "models", "model.zip"))
         except:
             self.model = Webmodel()
         self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
@@ -90,6 +90,8 @@ class Game():
         self.ai_apple = Apple(400, 300, self.screen)
         self.ai_colission = False
         self.ai_next_move = 0
+        self.ai_colission_score = 0
+        self.RESPAWN_AFTER = 3
         
 
     async def gameloop(self) -> None:
@@ -184,23 +186,32 @@ class Game():
 
                 self.ai_snake.move()
                 self.ai_snake.check_tails()
+
+                if self.gamemodes[self.gamemode] == "chase_same_apple":
+                    tmp_apple = self.apple
+                elif self.gamemodes[self.gamemode] == "chase_different_apple":
+                    tmp_apple = self.ai_apple
+                if pygame.sprite.spritecollideany(self.ai_snake, [tmp_apple]):
+                    self.ai_snake.add_tail()
+                    self.spawn_apple(ai=self.gamemodes[self.gamemode] == "chase_different_apple")
+                    self.score -= 1
+                    self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
+                if pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) and pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) != self.ai_snake.get_tails().sprites()[0]:
+                    self.ai_colission = True   
+                    self.ai_colission_score = self.score                
+                if pygame.sprite.spritecollideany(self.ai_snake, self.game_map.get_borders()):
+                    self.ai_colission = True
+                    self.ai_colission_score = self.score
+            else:
+                if self.ai_colission_score + self.RESPAWN_AFTER == self.score:
+                    self.ai_next_move = 0
+                    self.ai_snake = Snake_Head(775, 400, self.screen, ai=True)
+                    self.ai_colission = False
+
             self.ai_snake.draw()
             if self.gamemodes[self.gamemode] == "chase_different_apple":
                 self.ai_apple.draw()
 
-            if self.gamemodes[self.gamemode] == "chase_same_apple":
-                tmp_apple = self.apple
-            elif self.gamemodes[self.gamemode] == "chase_different_apple":
-                tmp_apple = self.ai_apple
-            if pygame.sprite.spritecollideany(self.ai_snake, [tmp_apple]):
-                self.ai_snake.add_tail()
-                self.spawn_apple(ai=self.gamemodes[self.gamemode] == "chase_different_apple")
-                self.score -= 1
-                self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
-            if pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) and pygame.sprite.spritecollideany(self.ai_snake, self.ai_snake.get_tails()) != self.ai_snake.get_tails().sprites()[0]:
-                self.ai_colission = True                   
-            if pygame.sprite.spritecollideany(self.ai_snake, self.game_map.get_borders()):
-                self.ai_colission = True
 
         if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
             self.snake.set_facing(self.next_moves.pop(0))
@@ -519,14 +530,20 @@ class Game():
 
         distances = [snake_x//25, snake_y//25, self.WIDTH-snake_x//25-1, self.HEIGHT-snake_y//25-1]
         tails = self.ai_snake.get_tails().sprites()
-
+        borders = self.game_map.get_borders().sprites()
         for x in range(snake_x//self.pixels):
                 tmp_rect = pygame.Rect(snake_x-x*self.pixels, snake_y, self.pixels, self.pixels)
                 for tail in tails:
                     if tmp_rect.collidepoint(tail.get_pos()):
                         if x < distances[0]:
                             distances[0] = x
-                        
+                            break
+
+                for border in borders:
+                    if tmp_rect.collidepoint(border.get_pos()):
+                        if x < distances[0]:
+                            distances[0] = x  
+                            break          
 
         for y in range(snake_y//self.pixels):
                 tmp_rect = pygame.Rect(snake_x, snake_y-y*self.pixels, self.pixels, self.pixels)
@@ -534,15 +551,28 @@ class Game():
                     if tmp_rect.collidepoint(tail.get_pos()):
                         if y < distances[1]:
                             distances[1] = y
-                        
-                    
+                            break
+
+                for border in borders:
+                    if tmp_rect.collidepoint(border.get_pos()):
+                        if y < distances[1]:
+                            distances[1] = y
+                            break
+
+
         for x in range(self.WIDTH - snake_x//self.pixels):
                 tmp_rect = pygame.Rect(snake_x+x*self.pixels, snake_y, self.pixels, self.pixels)
                 for tail in tails:
                     if tmp_rect.collidepoint(tail.get_pos()):
                         if x < distances[2]:
                             distances[2] = x
-                        
+                            break
+
+                for border in borders:
+                    if tmp_rect.collidepoint(border.get_pos()):
+                        if x < distances[2]:
+                            distances[2] = x
+                            break
 
         for y in range(self.HEIGHT - snake_y//self.pixels):
                 tmp_rect = pygame.Rect(snake_x, snake_y+y*self.pixels, self.pixels, self.pixels)
@@ -550,9 +580,15 @@ class Game():
                     if tmp_rect.collidepoint(tail.get_pos()):
                         if y < distances[3]:
                             distances[3] = y
-                        break
+                            break
+
+                for border in borders:
+                    if tmp_rect.collidepoint(border.get_pos()):
+                        if y < distances[3]:
+                            distances[3] = y
+                            break
         
-        
+
         if snake_facing == "left":
             return distances[3], distances[0], distances[1]
         elif snake_facing == "up":
