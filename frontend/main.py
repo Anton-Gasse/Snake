@@ -152,7 +152,7 @@ class Game():
                 
                 await self.update_ai_next_move()
                 
-                if self.ai_snake.x_pos % 25 == 0 and self.ai_snake.y_pos % 25 == 0:
+                if self.ai_snake.x_pos % self.pixels == 0 and self.ai_snake.y_pos % self.pixels == 0:
                     
                     while self.ai_next_move == None:
                         #getting the ai_move from the webmodel
@@ -201,7 +201,7 @@ class Game():
             if self.gamemodes[self.gamemode] == "chase_different_apple":
                 self.ai_apple.draw()
 
-        if len(self.next_moves) >= 1 and self.snake.x_pos % 25 == 0 and self.snake.y_pos % 25 == 0:
+        if len(self.next_moves) >= 1 and self.snake.x_pos % self.pixels == 0 and self.snake.y_pos % self.pixels == 0:
             self.snake.set_facing(self.next_moves.pop(0))
         self.snake.move()    
         self.snake.check_tails()
