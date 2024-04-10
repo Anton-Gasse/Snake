@@ -107,12 +107,11 @@ class Game():
             while self.gamestatus == "play":
                 await self.play_loop()
                 
-
             while self.gamestatus == "edit":
                 await self.edit_loop()
         
             
-    async def pause_loop(self):
+    async def pause_loop(self) -> None:
         """
         The pause game loop.
         """
@@ -140,7 +139,7 @@ class Game():
         await asyncio.sleep(0)
 
 
-    async def play_loop(self):
+    async def play_loop(self) -> None:
         """
         The play game loop.
         """
@@ -237,27 +236,11 @@ class Game():
         self.clock.tick(30)
         await asyncio.sleep(0)
 
-    async def update_ai_next_move(self):
-        obs = None
-        if (self.ai_snake.x_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'right':
-            obs = self.get_observation(self.ai_snake.x_pos+self.pixels-self.ai_snake.speed, self.ai_snake.y_pos)
-        elif (self.ai_snake.x_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'left':
-            obs = self.get_observation(self.ai_snake.x_pos-self.pixels+self.ai_snake.speed, self.ai_snake.y_pos)
-        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'down':
-            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos+self.pixels-self.ai_snake.speed)
-        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'up':
-            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos-self.pixels+self.ai_snake.speed)
-
-        if obs != None:
-            if isinstance(self.model, Webmodel):
-                await self.model.emit(obs)
-                
-            else:
-                self.ai_next_move, _ = self.model.predict(obs)
-        
-                    
-
-    async def edit_loop(self):
+    
+    async def edit_loop(self) -> None:
+        """
+        The Edit mode loop.
+        """
         self.edit_events()
         self.game_map.draw()
         self.exit_button1.draw()
@@ -364,7 +347,7 @@ class Game():
                         self.last_move = "left"
         
 
-    def edit_events(self):
+    def edit_events(self) -> None:
         """
         Handles events while the game is in edit mode.
         """
@@ -389,6 +372,7 @@ class Game():
                             m.writelines(line)
 
                     self.update_borders()
+
 
     def reset(self) -> None:
         """
@@ -466,7 +450,7 @@ class Game():
         return positions
 
 
-    def teleportation(self):
+    def teleportation(self) -> None:
         """
         Teleports the snake to the other side when going off the map
         """
@@ -488,6 +472,28 @@ class Game():
                 tail.set_pos(tail.x_pos, 0)
             if tail.y_pos <= 0 and tail.facing == 'up':
                 tail.set_pos(tail.x_pos, 600)
+
+
+    async def update_ai_next_move(self) -> None:
+        """
+        Updates the next move of the AI
+        """
+        obs = None
+        if (self.ai_snake.x_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'right':
+            obs = self.get_observation(self.ai_snake.x_pos+self.pixels-self.ai_snake.speed, self.ai_snake.y_pos)
+        elif (self.ai_snake.x_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.y_pos % 25 == 0 and self.ai_snake.facing == 'left':
+            obs = self.get_observation(self.ai_snake.x_pos-self.pixels+self.ai_snake.speed, self.ai_snake.y_pos)
+        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos-self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'down':
+            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos+self.pixels-self.ai_snake.speed)
+        elif self.ai_snake.x_pos % 25 == 0 and (self.ai_snake.y_pos+self.ai_snake.speed) % 25 == 0 and self.ai_snake.facing == 'up':
+            obs = self.get_observation(self.ai_snake.x_pos, self.ai_snake.y_pos-self.pixels+self.ai_snake.speed)
+
+        if obs != None:
+            if isinstance(self.model, Webmodel):
+                await self.model.emit(obs)
+                
+            else:
+                self.ai_next_move, _ = self.model.predict(obs)
 
 
     def get_observation(self, x:int, y:int) -> tuple[int, int, int, int, int, int, int]:
@@ -533,6 +539,7 @@ class Game():
         distances = [snake_x//25, snake_y//25, self.WIDTH-snake_x//25-1, self.HEIGHT-snake_y//25-1]
         tails = self.ai_snake.get_tails().sprites()
         borders = self.game_map.get_borders().sprites()
+        
         for x in range(snake_x//self.pixels):
                 tmp_rect = pygame.Rect(snake_x-x*self.pixels, snake_y, self.pixels, self.pixels)
                 for tail in tails:
@@ -601,7 +608,7 @@ class Game():
             return distances[2], distances[3], distances[0]
 
 
-    def update_borders(self):
+    def update_borders(self) -> None:
         """
         Updates the borders according to the map file
         """
