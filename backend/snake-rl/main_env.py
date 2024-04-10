@@ -15,30 +15,37 @@ class SnakeEnv(gymnasium.Env):
 
     def __init__(self, env_config: dict):
         self.action_space: spaces.Discrete = spaces.Discrete(3)
-        self.observation_space: spaces.Box = spaces.Box(low=0, high=4, shape=(self.MAP_HEIGHT, self.MAP_WIDTH), dtype=int)
-        #self.observation_space: spaces.Box = spaces.Box(low=np.array([-self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1, 1, 1, 1]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1, max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH)]), shape=(7,), dtype=int)
-        self.map: list[list[str]] = [[0 for _ in range(self.MAP_WIDTH)] for _ in range(self.MAP_HEIGHT)]
-        self.map[0] = [1 for _ in range(self.MAP_WIDTH)]
-        self.map[-1] = [1 for _ in range(self.MAP_WIDTH)]
-        for i in range(self.MAP_HEIGHT):
-            self.map[i][0] = 1
-            self.map[i][-1] = 1
+        # self.observation_space: spaces.Dict = spaces.Dict({
+        #     "info": spaces.Box(low=np.array([0, 0, -self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1]), shape=(6,), dtype=int),
+        #     "map": spaces.Box(low=0, high=4, shape=(self.MAP_HEIGHT, self.MAP_WIDTH), dtype=int) 
+        # })   
+        self.observation_space: spaces.Box = spaces.Box(low=np.array([-self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1, 1, 1, 1]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1, max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH), max(self.MAP_HEIGHT, self.MAP_WIDTH)]), shape=(7,), dtype=int)
+        #self.observation_space: spaces.Box = spaces.Box(low=np.array([-self.MAP_WIDTH, -self.MAP_HEIGHT, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), high=np.array([self.MAP_WIDTH, self.MAP_HEIGHT, 1, 1, self.MAP_WIDTH, math.sqrt(2*(min(self.MAP_HEIGHT, self.MAP_WIDTH)**2)), self.MAP_HEIGHT, math.sqrt(2*(min(self.MAP_HEIGHT, self.MAP_WIDTH)**2)), self.MAP_WIDTH, math.sqrt(2*(min(self.MAP_HEIGHT, self.MAP_WIDTH)**2)), self.MAP_HEIGHT, math.sqrt(2*(min(self.MAP_HEIGHT, self.MAP_WIDTH)**2)), (self.MAP_WIDTH-2)*(self.MAP_HEIGHT-2)-1]), shape=(13,), dtype=int)
+
+        self.snake: Snake = Snake(self.MAP_WIDTH//2, self.MAP_HEIGHT//2)
+        self.apple: Apple = Apple(4, 4)
+        self.update_map()
+        
 
 
     def reset(self, seed: int=None, options: dict[str, Any]=None) -> tuple[Any, dict[str, Any]]:
-        self.snake: Snake = Snake(31, 16)
+        self.snake: Snake = Snake(self.MAP_WIDTH//2, self.MAP_HEIGHT//2)
         # for i in range(20):
         #     self.snake.append_tail()
-        self.apple: Apple = Apple(4, 4)
+        self.update_map()
         self.step_counter: int = 0
         self.update_apple()
         self.update_map()
         snake_x, snake_y = self.snake.get_pos()
         apple_x, apple_y = self.apple.get_pos()
-        d1, d2, d3 = self.get_distance_next_obj()
-        #obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
-        obs = np.array(self.map)
+        d1, d2, d3 = self.get_distance_next_obj()#, d4, d5, d6, d7, d8 = self.get_distance_next_obj()
+        obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
+        # obs = {
+        #     'info': np.array([snake_x, snake_y, snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1]]),
+        #     'map': np.array(self.get_obs_map())}
+        #obs = np.array([apple_x-snake_x, apple_y-snake_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3, d4, d5, d6, d7, d8, len(self.snake.get_tails())])
         info = {}
+        
         return obs, info
     
 
@@ -57,6 +64,7 @@ class SnakeEnv(gymnasium.Env):
 
         if self.check_apple_colission():
             self.snake.append_tail()
+            self.update_map()
             self.update_apple()
             self.step_counter = 0
             reward += 1
@@ -84,9 +92,12 @@ class SnakeEnv(gymnasium.Env):
         snake_x, snake_y = self.snake.get_pos()
         apple_x, apple_y = self.apple.get_pos()
 
-        d1, d2, d3 = self.get_distance_next_obj()
-        #obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
-        obs = np.array(self.map)
+        d1, d2, d3 = self.get_distance_next_obj() #, d4, d5, d6, d7, d8 = self.get_distance_next_obj()
+        obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
+        # obs = obs = {
+        #     'info': np.array([snake_x, snake_y, snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1]]),
+        #     'map': np.array(self.get_obs_map())}
+        #obs = np.array([apple_x-snake_x, apple_y-snake_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3, d4, d5, d6, d7, d8, len(self.snake.get_tails())])
         return obs, reward, terminated, truncated, info
 
 
@@ -118,7 +129,7 @@ class SnakeEnv(gymnasium.Env):
         positions: list[tuple[int, int]] = []
         for y in range(self.MAP_HEIGHT):
             for x in range(self.MAP_WIDTH):
-                if self.map[y][x] not in [1, 2, 3, 4] and math.sqrt((x - self.snake.x)**2 + (y - self.snake.y)**2) <= len(self.snake.get_tails()):
+                if self.map[y][x] not in [1, 2, 3, 4]: #and math.sqrt((x - self.snake.x)**2 + (y - self.snake.y)**2) == len(self.snake.get_tails())-2:
 
                     positions.append((x, y))
         
@@ -130,6 +141,12 @@ class SnakeEnv(gymnasium.Env):
             print([[" ", "x", "s", "t", "a"][n] for n in m])
         time.sleep(0.3)
 
+
+    def get_obs_map(self) -> list[list[int]]:
+        obs_map = []
+        for m in self.map:
+            obs_map.append([[0, 1, 2, 3, 4][n] for n in m])
+        return obs_map
 
     def check_apple_colission(self) -> bool:
         snake_x, snake_y = self.snake.get_pos()
@@ -156,6 +173,7 @@ class SnakeEnv(gymnasium.Env):
         snake_direct = self.snake.get_direct()
 
         distances = [snake_x, snake_y, self.MAP_WIDTH-snake_x-1, self.MAP_HEIGHT-snake_y-1]
+        #distances = [snake_x, 0, snake_y, 0, self.MAP_WIDTH-snake_x-1, 0, self.MAP_HEIGHT-snake_y-1, 0]
         #going left
         for x in range(snake_x):
             if self.map[snake_y][snake_x-x] == 3:
@@ -178,6 +196,35 @@ class SnakeEnv(gymnasium.Env):
                 distances[3] = y
                 break
 
+        # if snake_x != 0 and snake_y != 0 and snake_x != self.MAP_WIDTH-1 and snake_y != self.MAP_HEIGHT-1:
+        #     for c in range(self.MAP_HEIGHT+self.MAP_WIDTH):
+        #         if self.map[snake_y-c][snake_x-c] in [1, 3]:
+        #             distances[1] = c
+        #             break
+
+        #     for c in range(self.MAP_HEIGHT+self.MAP_WIDTH):
+        #         if self.map[snake_y-c][snake_x+c] in [1, 3]:
+        #             distances[3] = c
+        #             break
+
+        #     for c in range(self.MAP_HEIGHT+self.MAP_WIDTH):
+        #         if self.map[snake_y+c][snake_x+c] in [1, 3]:
+        #             distances[5] = c
+        #             break
+            
+        #     for c in range(self.MAP_HEIGHT+self.MAP_WIDTH):
+        #         if self.map[snake_y+c][snake_x-c] in [1, 3]:
+        #             distances[7] = c
+        #             break
+        # if snake_direct == (-1, 0):
+        #     distances[4] = 0
+        # elif snake_direct == (0, -1):
+        #     distances[6] = 0
+        # elif snake_direct == (1, 0):
+        #     distances[0] = 0
+        # elif snake_direct == (0, 1):
+        #     distances[2] = 0       
+        #return tuple(distances)
         if snake_direct == (-1, 0):
             return distances[3], distances[0], distances[1]
         elif snake_direct == (0, -1):
@@ -200,3 +247,4 @@ if __name__ == "__main__":
         print("REWARD", reward)
         print("OBS", obs)
         test_env.render()
+   
