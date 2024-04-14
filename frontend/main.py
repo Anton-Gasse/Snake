@@ -82,8 +82,8 @@ class Game():
         self.ai_opponent = False
         self.edit_button = Button(50, 50, self.screen, "utils/edit_button.png")
         self.speed_button = Button(50, 125, self.screen, "utils/normal_speed_button.png")
-        self.exit_button1 = Button(100, 400, self.screen, "utils/exit_button.png")
-        self.exit_button2 = Button(775, 400, self.screen, "utils/exit_button.png")
+        self.exit_button = Button(100, 400, self.screen, "utils/exit_button.png")
+        self.reset_button = Button(775, 400, self.screen, "utils/reset_button.png")
         try:
             self.model = PPO.load(os.path.join("..", "backend", "snake-rl", "models", "model.zip"))
         except:
@@ -227,8 +227,8 @@ class Game():
         """
         self.edit_events()
         self.game_map.draw()
-        self.exit_button1.draw()
-        self.exit_button2.draw()
+        self.exit_button.draw()
+        self.reset_button.draw()
 
         pygame.display.update()
         self.clock.tick(30)
@@ -339,8 +339,41 @@ class Game():
                 sys.exit()
             
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if self.exit_button1.rect.collidepoint(event.pos) or self.exit_button2.rect.collidepoint(event.pos):
+                if self.exit_button.rect.collidepoint(event.pos):
                     self.gamestatus = "pause"
+                elif self.reset_button.rect.collidepoint(event.pos):
+                    standard_map = """
+                                    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    x                                  x 
+                                    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+                                    """
+                    with open("utils/map.txt", "w") as m:
+                        m.truncate()
+                        m.writelines(standard_map)
+                    with open("utils/map.txt", "r") as m:
+                        self.map_file = m.readlines()
+                    self.update_borders()
                 else:
                     x = event.pos[0]//self.pixels
                     y = event.pos[1]//self.pixels
@@ -643,10 +676,14 @@ class Game():
         """
         if self.speed == 3.125:
             self.speed = 5
+            self.speed_button.image = pygame.image.load("utils/normal_speed_button.png").convert_alpha()
         elif self.speed == 5:
             self.speed = 6.25
+            self.speed_button.image = pygame.image.load("utils/fast_speed_button.png").convert_alpha()
         elif self.speed == 6.25:
             self.speed = 3.125
+            self.speed_button.image = pygame.image.load("utils/slow_speed_button.png").convert_alpha()
+        self.speed_button.image.set_colorkey((127, 127, 127))
         print("changed speed")
 
 
