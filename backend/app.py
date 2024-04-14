@@ -8,7 +8,7 @@ import os
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-model = PPO.load(os.path.join("backend", "snake-rl", "models", "first_model.zip"))
+model = PPO.load(os.path.join("backend", "snake-rl", "models", "model.zip"))
 
 
 @app.route('/')
