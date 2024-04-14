@@ -43,9 +43,9 @@ python3 main.py
 cd frontend
 ```
 ```sh
-python3 -m pygbag --build --app_name snake main.py
+python3 -m pygbag --build --ume_block 0 --can_close 1 --title snake --app_name snake main.py
 ```
-3. Add [this script tag](./frontend/add-to-html.txt) to the [this body tag](./frontend/build/web/index.html#L334)
+3. Add [this script tag](./frontend/add-to-html.txt) to the [this body tag](./frontend/build/web/index.html#L349)
 4. Run the Flask Server in the snake folder:
 ```sh
 cd ..

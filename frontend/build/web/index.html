@@ -1,13 +1,13 @@
 <html lang="en-us"><script src="https://pygame-web.github.io/archives/0.8/pythons.js" type=module id="site" data-python="cpython3.11" data-os="vtx,fs,snd,gui" async defer>#<!--
 
 print("""
-Loading frontend from frontend.apk
+Loading snake from frontend.apk
     Pygbag Version : 0.8.6
     Template Version : 0.8.3
     Python  : 3.11
     CDN URL : https://pygame-web.github.io/archives/0.8/
     Screen  : 1280x720
-    Title   : frontend
+    Title   : snake
     Folder  : frontend
     Authors : pgw
     SPDX-License-Identifier: cookiecutter.spdx
@@ -165,9 +165,19 @@ async def custom_site():
         compose()
 
     # test/wait if user media interaction required
+    if not platform.window.MM.UME:
 
-
-        
+        # now make a prompt
+        fnt = pygame.sysfont.SysFont("freesans",  uy(80) )
+        prompt = fnt.render("Ready to start !", True, "blue")
+        pg_bar(track.len)
+        screen.blit(prompt, ( marginx+ ux(80), marginy - uy(10) ) )
+        compose()
+        print("""
+        * Waiting for media user engagement : please click/touch page *
+    """)
+        while not platform.window.MM.UME:
+            await asyncio.sleep(.1)
 
     # cleanup
     screen.fill( (0,0,0,0) )
@@ -227,8 +237,8 @@ config = {
     _sdl2 : "canvas",
     user_canvas : 0,
     user_canvas_managed : 0,
-    ume_block : 1,
-    can_close : 0,
+    ume_block : 0,
+    can_close : 1,
     archive : "frontend",
     gui_debug : 3,
     cdn : "https://pygame-web.github.io/archives/0.8/",
@@ -238,7 +248,7 @@ config = {
 
 </script>
 
-    <title>frontend</title>
+    <title>snake</title>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

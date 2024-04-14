@@ -199,7 +199,7 @@ class Game():
             else:
                 if self.ai_colission_score + self.RESPAWN_AFTER == self.score:
                     self.ai_next_move = 0
-                    self.ai_snake = AI_Snake_Head(775, 400, self.screen)
+                    self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
                     self.ai_colission = False
 
             self.ai_snake.draw()
