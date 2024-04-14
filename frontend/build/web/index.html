@@ -346,17 +346,7 @@ config = {
 </head>
 
 <body>
-    <script id="socket-init" type="module">
-        import { io } from "https://cdn.socket.io/4.7.5/socket.io.esm.min.js";
-        window.init = {};
-        window.init.socket = io();
-        window.init.next_move = "nothing";
-        window.init.socket.on("update", (next_move) => {
-            if (window.init.next_move=="nothing") { 
-                window.init.next_move = next_move;
-            }
-        });
-    </script>
+
     <div id="transfer" align=center>
 <!--        <div class="spinner" id='spinner'></div> -->
         <div class="emscripten" id="status">Downloading...</div>

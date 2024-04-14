@@ -14,5 +14,4 @@ copy . .
 
 Expose 443
 
-#CMD python3 -m gunicorn --certfile=backend/ssl_keys/server.pem --keyfile=backend/ssl_keys/key.pem -b 0.0.0.0:443 backend.app:app
-CMD python3 ./backend/app.py
+CMD python3 -m gunicorn --certfile=backend/ssl_keys/cert.pem --keyfile=backend/ssl_keys/key.pem -b 0.0.0.0:443 backend.app:app
