@@ -684,7 +684,6 @@ class Game():
             self.speed = 3.125
             self.speed_button.image = pygame.image.load("utils/slow_speed_button.png").convert_alpha()
         self.speed_button.image.set_colorkey((127, 127, 127))
-        print("changed speed")
 
 
 if __name__ == "__main__":
