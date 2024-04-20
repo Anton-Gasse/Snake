@@ -7,3 +7,4 @@ cryptography
 torch
 stable-baselines3
 gunicorn
+eventlet

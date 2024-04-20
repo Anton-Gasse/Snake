@@ -9,7 +9,7 @@ RUN pip3 install flask && \
   pip install torch && \
   pip3 install stable-baselines3 && \
   pip3 install gunicorn && \
-  pip3 install uvicorn
+  pip3 install eventlet
 
 copy . .
 
