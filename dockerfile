@@ -15,4 +15,4 @@ copy . .
 
 Expose 443
 
-CMD python3 -m gunicorn --certfile=backend/ssl_keys/cert.pem --keyfile=backend/ssl_keys/key.pem -k uvicorn.workers.UvicornWorker -w 1 -b 0.0.0.0:443 backend.app:app
+CMD python3 -m gunicorn --certfile=backend/ssl_keys/cert.pem --keyfile=backend/ssl_keys/key.pem --worker-class eventlet -b 0.0.0.0:443 backend.app:app
