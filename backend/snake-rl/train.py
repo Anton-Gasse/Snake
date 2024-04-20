@@ -1,5 +1,4 @@
 from stable_baselines3 import PPO
-from stable_baselines3 import DQN
 from main_env import SnakeEnv
 
 env = SnakeEnv({})

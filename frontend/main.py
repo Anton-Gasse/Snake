@@ -2,6 +2,7 @@ import os
 import sys
 import pygame
 import random
+import time
 import asyncio
 from map import Map
 from snake import Snake_Head
@@ -56,7 +57,7 @@ class Game():
             map_file = m.readlines()
             HEIGHT = len(map_file)
             WIDTH = len(map_file[0])-2
-            
+    random.seed(time.time())
     def __init__(self) -> None:
         """
         Initializes the Game object.
@@ -89,7 +90,7 @@ class Game():
         except:
             self.model = Webmodel()
         self.ai_button = Button(800, 50, self.screen, "utils/ai_off_button.png")
-        self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")#pygame.Rect(800, 125, 50, 50)
+        self.gamemode_button = Button(800, 125, self.screen, "utils/gamemode_chase_same_apple_button.png")
         self.gamemodes = ["chase_same_apple", "chase_different_apple"]
         self.gamemode = 0
         self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
@@ -201,7 +202,8 @@ class Game():
                     self.ai_next_move = 0
                     self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
                     self.ai_colission = False
-
+                    self.score = len(self.snake.get_tails())-self.snake.start_size
+                    self.score_text = self.large_font.render(f"SCORE: {self.score}", False, [0, 155, 0])
             self.ai_snake.draw()
 
             if self.gamemodes[self.gamemode] == "chase_different_apple":
@@ -340,34 +342,34 @@ class Game():
             
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if self.exit_button.rect.collidepoint(event.pos):
+                    self.border_free_positions = self.get_border_free_positions()
+                    self.spawn_apple()
                     self.gamestatus = "pause"
                 elif self.reset_button.rect.collidepoint(event.pos):
-                    standard_map = """
-                                    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    x                                  x 
-                                    xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-                                    """
+                    standard_map = """xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+x                                  x 
+xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx """
                     with open("utils/map.txt", "w") as m:
                         m.truncate()
                         m.writelines(standard_map)
@@ -667,7 +669,6 @@ class Game():
         """
         self.game_map.borders.empty()
         self.game_map.add_borders()
-        self.spawn_apple()
 
 
     def change_speed(self) -> None:

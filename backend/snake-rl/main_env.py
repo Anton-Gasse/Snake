@@ -1,5 +1,4 @@
 import random
-import time
 import numpy as np
 import gymnasium
 from gymnasium import spaces
@@ -18,6 +17,9 @@ class SnakeEnv(gymnasium.Env):
         self.snake: Snake = Snake(self.MAP_WIDTH//2, self.MAP_HEIGHT//2)
         self.apple: Apple = Apple(4, 4)
         self.update_map()
+        snake_x, snake_y = self.snake.get_pos()
+        apple_x, apple_y = self.apple.get_pos()
+        self.distance: int = abs(snake_x-apple_x) + abs(snake_y-apple_y)
         
 
     def reset(self, seed: int=None, options: dict[str, Any]=None) -> tuple[Any, dict[str, Any]]:
@@ -28,6 +30,7 @@ class SnakeEnv(gymnasium.Env):
         self.update_map()
         snake_x, snake_y = self.snake.get_pos()
         apple_x, apple_y = self.apple.get_pos()
+        self.distance = abs(snake_x-apple_x) + abs(snake_y-apple_y)
         d1, d2, d3 = self.get_distance_next_obj()
         obs = np.array([snake_x-apple_x, snake_y-apple_y, self.snake.direct[0], self.snake.direct[1], d1, d2, d3])
         info = {}
@@ -46,11 +49,14 @@ class SnakeEnv(gymnasium.Env):
         self.snake.change_direct(actions[action])
         self.snake.move()
         self.snake.update_tail_directs()
-
+        self.step_counter += 1
         if self.check_apple_colission():
             self.snake.append_tail()
             self.update_map()
             self.update_apple()
+            snake_x, snake_y = self.snake.get_pos()
+            apple_x, apple_y = self.apple.get_pos()
+            self.distance = abs(snake_x-apple_x) + abs(snake_y-apple_y)
             self.step_counter = 0
             reward += 1
         else:
@@ -65,8 +71,8 @@ class SnakeEnv(gymnasium.Env):
         if self.check_tail_collission():
             terminated = True
             reward -= 1
-        self.step_counter += 1
-        if self.step_counter >= self.MAP_HEIGHT+self.MAP_WIDTH + 5*len(self.snake.get_tails()):
+        
+        if self.step_counter >= self.distance + (len(self.snake.get_tails())):
             truncated = True
             reward -= 0.1
         if len(self.snake.get_tails()) == (self.MAP_WIDTH-2) * (self.MAP_HEIGHT-2) - 1:
@@ -122,7 +128,7 @@ class SnakeEnv(gymnasium.Env):
     def render(self) -> None:
         for m in self.map:
             print([[" ", "x", "s", "t", "a"][n] for n in m])
-        time.sleep(0.3)
+        
 
 
     def check_apple_colission(self) -> bool:

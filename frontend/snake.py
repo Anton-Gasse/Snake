@@ -36,7 +36,8 @@ class Snake_Head(pygame.sprite.Sprite):
         self.rect.topleft = (x_pos, y_pos)
         self.screen = screen
         self.speed = speed
-        for _ in range(3):
+        self.start_size = 3
+        for _ in range(self.start_size):
             self.add_tail()
 
 

@@ -1,6 +1,6 @@
 from stable_baselines3 import PPO
-from stable_baselines3 import DQN
 from main_env import SnakeEnv
+import time
 
 env = SnakeEnv({})
 model = PPO.load('./models/model', env=env)
@@ -12,6 +12,7 @@ while not done and not truncated:
     obs, rewards, done, truncated, info = env.step(int(action))
     print(obs)
     env.render()
+    time.sleep(0.3)
 
 print(done, truncated)
 print("Score:", len(env.snake.get_tails()))
