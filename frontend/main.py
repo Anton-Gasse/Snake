@@ -344,6 +344,7 @@ class Game():
                 if self.exit_button.rect.collidepoint(event.pos):
                     self.border_free_positions = self.get_border_free_positions()
                     self.spawn_apple()
+                    self.spawn_apple(ai=True)
                     self.gamestatus = "pause"
                 elif self.reset_button.rect.collidepoint(event.pos):
                     standard_map = """xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx 
@@ -404,6 +405,10 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx """
         if self.model != None:
             self.ai_snake = AI_Snake_Head(775, 400, self.speed, self.screen)
             self.ai_colission = False
+        if self.apple.x_pos < 0 or self.apple.y_pos < 0:
+            self.spawn_apple()
+        if self.ai_apple.x_pos < 0 or self.ai_apple.y_pos < 0:
+            self.spawn_apple(ai=True)
 
 
     def colission_detection(self) -> None:
@@ -446,12 +451,17 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx """
         """
         Spawns the apple in a random free position
         """
-        x, y = random.choice(self.get_possible_apple_positions())
-        if not ai:
-            self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
-        else:
-            self.ai_apple = AI_Apple(x*self.pixels, y*self.pixels, self.screen)
-
+        positions = self.get_possible_apple_positions()
+        if len(positions) > 0:
+            x, y = random.choice(positions)
+            if not ai:
+                self.apple = Apple(x*self.pixels, y*self.pixels, self.screen)
+            else:
+                self.ai_apple = AI_Apple(x*self.pixels, y*self.pixels, self.screen)
+        elif not ai:
+            self.apple = Apple(-self.pixels*10, -self.pixels*10, self.screen)
+        elif ai:
+            self.ai_apple = Apple(-self.pixels*10, -self.pixels*10, self.screen)
 
     def get_possible_apple_positions(self) -> list[tuple[int, int]]:
         """
@@ -464,18 +474,18 @@ xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx """
         for x, y in self.border_free_positions:
             tmp_rect = pygame.Rect(self.pixels*x, self.pixels*y, self.pixels, self.pixels)
             colission = False
-            if tmp_rect.collidepoint(self.snake.get_pos()):
+            if tmp_rect.colliderect(self.snake.rect):
                 colission = True
                 
             for tail in self.snake.get_tails():
-                if tmp_rect.collidepoint(tail.get_pos()):
+                if tmp_rect.colliderect(tail.rect):
                     colission = True
             
             if self.ai_opponent:
-                if tmp_rect.collidepoint(self.ai_snake.get_pos()):
+                if tmp_rect.colliderect(self.ai_snake.rect):
                     colission = True
                 for tail in self.ai_snake.get_tails():
-                    if tmp_rect.collidepoint(tail.get_pos()):
+                    if tmp_rect.colliderect(tail.rect):
                         colission = True
 
             if colission == False:
