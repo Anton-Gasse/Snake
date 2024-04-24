@@ -310,25 +310,40 @@ class Game():
                         self.last_move = "left"
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                if 300 <= x <= 600 and 0 <= y <= 300:
-                    if self.last_move != "down":
-                        self.next_moves.append("up") 
-                        self.last_move = "up" 
-                if 300 <= x <= 600 and 301 <= y <= 600:
-                    if self.last_move != "up":
-                        self.next_moves.append("down") 
-                        self.last_move = "down" 
+                x, _ = pygame.mouse.get_pos()
+                half_screen_x = self.screen.get_size()[0]//2 
                 
-                if 601 <= x <= 900 and 0 <= y <= 600:
-                    if self.last_move != "left":
+                if self.last_move == "down":
+                    if x < half_screen_x:
                         self.next_moves.append("right")
-                        self.last_move = "right" 
-
-                if 0 <= x <= 299 and 0 <= y <= 600:
-                    if self.last_move != "right":
+                        self.last_move = "right"
+                    else:
                         self.next_moves.append("left")
                         self.last_move = "left"
+
+                elif self.last_move == "left":
+                    if x < half_screen_x:
+                        self.next_moves.append("down")
+                        self.last_move = "down"
+                    else:
+                        self.next_moves.append("up")
+                        self.last_move = "up"
+
+                elif self.last_move == "up":
+                    if x < half_screen_x:
+                        self.next_moves.append("left")
+                        self.last_move = "left"
+                    else:
+                        self.next_moves.append("right")
+                        self.last_move = "right"
+
+                elif self.last_move == "right":
+                    if x < half_screen_x:
+                        self.next_moves.append("up")
+                        self.last_move = "up"
+                    else:
+                        self.next_moves.append("down")
+                        self.last_move = "down"
         
 
     def edit_events(self) -> None:
