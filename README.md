@@ -54,7 +54,7 @@ cd ..
 python3 ./backend/app.py
 ```
 
-## How to Dockerize it
+## How to Dockerize the web app
 1. Run the build command:
 ```sh
 docker build -t snake .
