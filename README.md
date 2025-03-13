@@ -1,7 +1,7 @@
 # Snake
 
 ## Test it out
-https://anton-gasse.de
+https://anton-gasse.de/snake
 
 ![standard map](https://github.com/Anton-Gasse/Snake/blob/main/frontend/utils/readme_snake.png?raw=true)
 
